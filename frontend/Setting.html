@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setting</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Open Sans', 'Roboto', sans-serif;
+            font-size: 16px;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: #fff;
+            padding: 15px 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo img {
+            height: 40px;
+            display: block;
+        }
+
+        .nav {
+            display: flex;
+            gap: 20px;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav li {
+            margin: 0;
+        }
+
+        .nav a {
+            text-decoration: none;
+            color: #333;
+            padding: 10px 15px;
+            transition: color 0.3s;
+            display: block;
+            white-space: nowrap;
+        }
+
+        .nav a:hover {
+            color: #029fe7;
+        }
+
+        /* Main Section */
+        .main-section {
+            background: linear-gradient(to right, #fee7ef, #c5c9f9);
+            padding: 80px 20px;
+            min-height: calc(100vh - 200px);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .page-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 3rem;
+            font-weight: 700;
+            color: #4a4a4a;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .page-description {
+            color: #999;
+            text-align: center;
+            margin-bottom: 60px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Blog Grid */
+        .blog-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 22px;
+        }
+
+        .blog-card {
+            background: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .blog-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+
+        .blog-card-content {
+            padding: 20px;
+        }
+
+        .blog-image {
+            width: 100%;
+            height: 350px;
+            object-fit: cover;
+            border-radius: 10px;
+            display: block;
+        }
+
+        .blog-title {
+            font-size: 1.25rem;
+            color: #333;
+            margin: 17px 0 0;
+            font-weight: 600;
+        }
+
+        .blog-title a {
+            color: #333;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .blog-title a:hover {
+            color: #029fe7;
+        }
+
+        .blog-meta {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            font-size: 0.875rem;
+            color: #999;
+            margin: 15px 0;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .meta-item::before {
+            content: '📅';
+            font-size: 1rem;
+        }
+
+        .meta-item.comments::before {
+            content: '💬';
+        }
+
+        .read-more-btn {
+            display: inline-block;
+            background: #029fe7;
+            color: #fff;
+            padding: 10px 25px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+
+        .read-more-btn:hover {
+            background: #0288d1;
+        }
+
+        /* Footer */
+        .footer {
+            background: #666;
+            color: #fff;
+            text-align: center;
+            padding: 30px 20px;
+        }
+
+        .footer p {
+            margin: 0;
+        }
+
+        /* Mobile Menu Toggle */
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #333;
+        }
+
+        /* Tablet */
+        @media (max-width: 991px) {
+            .blog-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .page-title {
+                font-size: 2.5rem;
+            }
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .header-content {
+                position: relative;
+            }
+
+            .nav {
+                display: none;
+                position: absolute;
+                top: 60px;
+                right: 0;
+                background: #fff;
+                flex-direction: column;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                padding: 20px;
+                min-width: 200px;
+                border-radius: 8px;
+            }
+
+            .nav.active {
+                display: flex;
+            }
+
+            .nav li {
+                width: 100%;
+            }
+
+            .nav a {
+                width: 100%;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .main-section {
+                padding: 60px 15px;
+            }
+
+            .page-title {
+                font-size: 2rem;
+            }
+
+            .blog-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .blog-image {
+                height: 300px;
+            }
+        }
+
+        /* Small Mobile */
+        @media (max-width: 575px) {
+            .page-title {
+                font-size: 1.875rem;
+            }
+
+            .logo img {
+                height: 35px;
+            }
+
+            .page-description {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <img src="images/default-logo.png" alt="Logo">
+            </div>
+            <button class="menu-toggle" onclick="toggleMenu()" aria-label="Toggle menu">☰</button>
+            <nav>
+                <ul class="nav" id="mainNav">
+                    <li><a href="./">Home</a></li>
+                    <li><a href="new_spread.html">New Spread</a></li>
+                    <li><a href="history.html">History</a></li>
+                    <li><a href="analysis.html">Analysis</a></li>
+                    <li><a href="Setting.html">Setting</a></li>
+                    <li><a href="products/products.html">Store</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Section -->
+    <section class="main-section">
+        <div class="container">
+            <h1 class="page-title">Setting</h1>
+            <p class="page-description">Sample text. Click to select the text box. Click again or double click to start editing the text.</p>
+
+            <!-- Blog Grid -->
+            <div class="blog-grid">
+                <!-- Blog Card 1 -->
+                <article class="blog-card">
+                    <div class="blog-card-content">
+                        <img src="images/de8512ae-e8f0-48ef-ab0f-0f872995de061.jpg" alt="Post 6" class="blog-image">
+                        <h4 class="blog-title">
+                            <a href="blog/post-5.html">Post 6 Headline</a>
+                        </h4>
+                        <div class="blog-meta">
+                            <span class="meta-item">Apr 08, 2024</span>
+                            <span class="meta-item comments">Comments (0)</span>
+                        </div>
+                        <a href="blog/post-5.html" class="read-more-btn">Read More</a>
+                    </div>
+                </article>
+
+                <!-- Blog Card 2 -->
+                <article class="blog-card">
+                    <div class="blog-card-content">
+                        <img src="images/unnamed2.jpg" alt="Post 5" class="blog-image">
+                        <h4 class="blog-title">
+                            <a href="blog/post-4.html">Post 5 Headline</a>
+                        </h4>
+                        <div class="blog-meta">
+                            <span class="meta-item">Apr 08, 2024</span>
+                            <span class="meta-item comments">Comments (0)</span>
+                        </div>
+                        <a href="blog/post-4.html" class="read-more-btn">Read More</a>
+                    </div>
+                </article>
+
+                <!-- Blog Card 3 -->
+                <article class="blog-card">
+                    <div class="blog-card-content">
+                        <img src="images/Gemini_Generated_Image_bcfzcdbcfzcdbcfz.png" alt="Post 4" class="blog-image">
+                        <h4 class="blog-title">
+                            <a href="blog/post-3.html">Post 4 Headline</a>
+                        </h4>
+                        <div class="blog-meta">
+                            <span class="meta-item">Apr 08, 2024</span>
+                            <span class="meta-item comments">Comments (0)</span>
+                        </div>
+                        <a href="blog/post-3.html" class="read-more-btn">Read More</a>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>Sample text. Click to select the Text Element.</p>
+    </footer>
+
+    <script>
+        function toggleMenu() {
+            const nav = document.getElementById('mainNav');
+            nav.classList.toggle('active');
+        }
+
+        // Close menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const nav = document.getElementById('mainNav');
+            const toggle = document.querySelector('.menu-toggle');
+            
+            if (!nav.contains(event.target) && !toggle.contains(event.target)) {
+                nav.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>

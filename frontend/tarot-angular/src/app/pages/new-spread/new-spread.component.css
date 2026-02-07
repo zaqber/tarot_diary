@@ -1,0 +1,170 @@
+/* Section 1 */
+.section-1 {
+  background: linear-gradient(to right, #c5c9f9, #fee7ef);
+  padding: 80px 20px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.section-title {
+  font-size: 2.25rem;
+  color: #4a4a4a;
+  margin-bottom: 40px;
+  text-align: left;
+}
+
+.button-group {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  background: #fff;
+  color: #4a4a4a;
+  padding: 12px 30px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.9375rem;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s;
+}
+
+.btn:hover {
+  background: #4a4a4a;
+  color: #fff;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 50px;
+  margin-top: 40px;
+}
+
+.card {
+  background-size: cover;
+  background-position: center;
+  border-radius: 20px;
+  height: 400px;
+  box-shadow: 2px 2px 8px rgba(128,128,128,0.5);
+  transition: transform 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+/* Section 2 */
+.section-2 {
+  background: linear-gradient(to right, #c5c9f9, #fee7ef);
+  padding: 80px 20px;
+}
+
+.card-wrapper {
+  width: 100%;
+}
+
+.card-info {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.card-title {
+  color: #4a4a4a;
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.tag-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 15px;
+}
+
+.tag {
+  background: #666;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.3s;
+  white-space: nowrap;
+}
+
+.tag:hover {
+  background: #333;
+}
+
+/* Tablet */
+@media (max-width: 991px) {
+  .card-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 30px;
+  }
+
+  .section-title {
+    font-size: 2rem;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .section-1,
+  .section-2 {
+    padding: 60px 15px;
+  }
+
+  .section-title {
+    font-size: 1.875rem;
+    text-align: center;
+  }
+
+  .card-grid {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .card {
+    height: 350px;
+  }
+
+  .button-group {
+    justify-content: center;
+  }
+
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Small Mobile */
+@media (max-width: 575px) {
+  .section-title {
+    font-size: 1.5rem;
+  }
+
+  .card {
+    height: 300px;
+  }
+}
+
+
