@@ -1,55 +1,121 @@
 <!-- Main Section -->
 <section class="main-section">
   <div class="container">
-    <h1 class="page-title">Setting</h1>
-    <p class="page-description">Sample text. Click to select the text box. Click again or double click to start editing the text.</p>
+    <h1 class="page-title">塔羅牌管理</h1>
+    <p class="page-description">瀏覽並查看所有塔羅牌的詳細資訊</p>
 
-    <!-- Blog Grid -->
-    <div class="blog-grid">
-      <!-- Blog Card 1 -->
-      <article class="blog-card">
-        <div class="blog-card-content">
-          <img src="assets/images/de8512ae-e8f0-48ef-ab0f-0f872995de061.jpg" alt="Post 6" class="blog-image">
-          <h4 class="blog-title">
-            <a href="#">Post 6 Headline</a>
-          </h4>
-          <div class="blog-meta">
-            <span class="meta-item">Apr 08, 2024</span>
-            <span class="meta-item comments">Comments (0)</span>
+    <!-- Filters Section -->
+    <div class="filters-container">
+      <!-- Search Bar -->
+      <div class="filter-group search-group">
+        <label for="search">搜尋：</label>
+        <input 
+          type="text" 
+          id="search" 
+          class="search-input" 
+          placeholder="搜尋塔羅牌名稱..."
+          [(ngModel)]="searchKeyword"
+          (input)="onSearchChange()">
+      </div>
+
+      <!-- Type Filter -->
+      <div class="filter-group">
+        <label for="type">類型：</label>
+        <select id="type" class="filter-select" [(ngModel)]="selectedType" (change)="onTypeChange(selectedType)">
+          <option value="all">全部</option>
+          <option value="major">大牌</option>
+          <option value="minor">小牌</option>
+        </select>
+      </div>
+
+      <!-- Suit Filter (only show when not major arcana) -->
+      <div class="filter-group" *ngIf="selectedType !== 'major'">
+        <label for="suit">花色：</label>
+        <select id="suit" class="filter-select" [(ngModel)]="selectedSuit" (change)="onSuitChange(selectedSuit)">
+          <option [ngValue]="null">全部</option>
+          <option *ngFor="let suit of suits" [ngValue]="suit.id">{{ suit.name }}</option>
+        </select>
+      </div>
+
+      <!-- Clear Filters Button -->
+      <button class="clear-btn" (click)="clearFilters()">清除篩選</button>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-container">
+      <div class="spinner"></div>
+      <p>載入中...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error" class="error-container">
+      <p class="error-message">{{ error }}</p>
+      <button class="retry-btn" (click)="loadAllCards()">重試</button>
+    </div>
+
+    <!-- Cards Count -->
+    <div *ngIf="!loading && !error" class="cards-count">
+      顯示 {{ filteredCards.length }} 張塔羅牌
+    </div>
+
+    <!-- Cards Grid -->
+    <div *ngIf="!loading && !error" class="cards-grid">
+      <article 
+        *ngFor="let card of filteredCards" 
+        class="card-item">
+        <div class="card-content">
+          <!-- Rotate Button -->
+          <button 
+            class="rotate-btn" 
+            (click)="toggleCardPosition($event, card.id)"
+            [title]="'切換至' + (isCardUpright(card.id) ? '逆位' : '正位')">
+            <span class="rotate-icon" [class.reversed]="!isCardUpright(card.id)">↻</span>
+          </button>
+
+          <!-- Position Badge -->
+          <div class="position-badge" [class.reversed]="!isCardUpright(card.id)">
+            {{ getPositionText(card.id) }}
           </div>
-          <a href="#" class="read-more-btn">Read More</a>
+
+          <div class="card-image-wrapper" (click)="viewCardDetail(card.id)">
+            <img 
+              [src]="getCardImage(card.id)" 
+              [alt]="card.name" 
+              class="card-image"
+              [class.card-reversed]="!isCardUpright(card.id)">
+            <div class="card-overlay">
+              <span class="view-detail-text">查看詳情</span>
+            </div>
+          </div>
+
+          <div class="card-info" (click)="viewCardDetail(card.id)">
+            <div class="card-header-info">
+              <span class="card-type-badge">{{ getCardTypeText(card.card_type) }}</span>
+              <span class="card-number">No. {{ card.number }}</span>
+            </div>
+            
+            <h3 class="card-name">{{ card.name_zh }}</h3>
+            <p *ngIf="card.suit" class="card-suit">{{ card.suit.name_zh }}</p>
+
+            <!-- Keywords Section -->
+            <div class="keywords-section">
+              <h4 class="section-label">關鍵字</h4>
+              <p class="keywords-text">{{ getKeywords(card) }}</p>
+            </div>
+
+            <!-- Brief Meaning -->
+            <div class="meaning-preview">
+              <p class="meaning-text">{{ getMeaning(card).substring(0, 60) }}{{ getMeaning(card).length > 60 ? '...' : '' }}</p>
+            </div>
+          </div>
         </div>
       </article>
+    </div>
 
-      <!-- Blog Card 2 -->
-      <article class="blog-card">
-        <div class="blog-card-content">
-          <img src="assets/images/unnamed2.jpg" alt="Post 5" class="blog-image">
-          <h4 class="blog-title">
-            <a href="#">Post 5 Headline</a>
-          </h4>
-          <div class="blog-meta">
-            <span class="meta-item">Apr 08, 2024</span>
-            <span class="meta-item comments">Comments (0)</span>
-          </div>
-          <a href="#" class="read-more-btn">Read More</a>
-        </div>
-      </article>
-
-      <!-- Blog Card 3 -->
-      <article class="blog-card">
-        <div class="blog-card-content">
-          <img src="assets/images/Gemini_Generated_Image_bcfzcdbcfzcdbcfz.png" alt="Post 4" class="blog-image">
-          <h4 class="blog-title">
-            <a href="#">Post 4 Headline</a>
-          </h4>
-          <div class="blog-meta">
-            <span class="meta-item">Apr 08, 2024</span>
-            <span class="meta-item comments">Comments (0)</span>
-          </div>
-          <a href="#" class="read-more-btn">Read More</a>
-        </div>
-      </article>
+    <!-- No Results -->
+    <div *ngIf="!loading && !error && filteredCards.length === 0" class="no-results">
+      <p>找不到符合條件的塔羅牌</p>
+      <button class="clear-btn" (click)="clearFilters()">清除篩選</button>
     </div>
   </div>
 </section>

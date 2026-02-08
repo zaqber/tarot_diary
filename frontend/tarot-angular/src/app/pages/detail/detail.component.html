@@ -1,0 +1,93 @@
+<section class="detail-section">
+  <div class="container">
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-container">
+      <div class="spinner"></div>
+      <p>載入中...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error" class="error-container">
+      <p class="error-message">{{ error }}</p>
+      <button class="back-btn" (click)="goBack()">返回列表</button>
+    </div>
+
+    <!-- Card Detail -->
+    <div *ngIf="!loading && !error && card" class="card-detail">
+      <!-- Back Button -->
+      <button class="back-btn" (click)="goBack()">
+        <span class="back-icon">←</span> 返回列表
+      </button>
+
+      <!-- Card Header -->
+      <div class="card-header">
+        <h1 class="card-title">{{ card.name_zh }}</h1>
+        <div class="card-meta">
+          <span class="card-type-badge">{{ getCardTypeText(card.card_type) }}</span>
+          <span class="card-number">No. {{ card.number }}</span>
+          <span *ngIf="card.suit" class="card-suit">{{ card.suit.name_zh }}</span>
+        </div>
+      </div>
+
+      <!-- Card Content -->
+      <div class="card-content">
+        <!-- Left: Image -->
+        <div class="card-image-container">
+          <img [src]="getCardImage(card.id)" [alt]="card.name" class="card-image">
+        </div>
+
+        <!-- Right: Details -->
+        <div class="card-info">
+          <!-- Suit Info (for minor cards) -->
+          <div *ngIf="card.suit && card.suit.id" class="info-section suit-section">
+            <h3 class="section-title">花色資訊</h3>
+            <div class="suit-info">
+              <p><strong>花色：</strong>{{ card.suit.name_zh || '無' }}</p>
+              <p><strong>元素：</strong>{{ card.suit.element || '無' }}</p>
+            </div>
+          </div>
+
+          <!-- Upright Meaning -->
+          <div class="info-section">
+            <h3 class="section-title upright-title">正位牌義</h3>
+            <div class="meaning-content">
+              <div class="meaning-item">
+                <h4>官方牌義</h4>
+                <p>{{ card.official_meaning.upright }}</p>
+              </div>
+              <div class="meaning-item" *ngIf="card.self_definition.upright">
+                <h4>個人牌義</h4>
+                <p>{{ card.self_definition.upright }}</p>
+              </div>
+              <div class="keywords" *ngIf="card.keywords.upright && card.keywords.upright.length > 0">
+                <h4>關鍵字</h4>
+                <p>{{ card.keywords.upright.join('、') }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Reversed Meaning -->
+          <div class="info-section">
+            <h3 class="section-title reversed-title">逆位牌義</h3>
+            <div class="meaning-content">
+              <div class="meaning-item">
+                <h4>官方牌義</h4>
+                <p>{{ card.official_meaning.reversed }}</p>
+              </div>
+              <div class="meaning-item" *ngIf="card.self_definition.reversed">
+                <h4>個人牌義</h4>
+                <p>{{ card.self_definition.reversed }}</p>
+              </div>
+              <div class="keywords" *ngIf="card.keywords.reversed && card.keywords.reversed.length > 0">
+                <h4>關鍵字</h4>
+                <p>{{ card.keywords.reversed.join('、') }}</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
