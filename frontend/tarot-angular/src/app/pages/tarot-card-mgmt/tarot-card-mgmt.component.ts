@@ -4,11 +4,11 @@ import { TarotCardService } from '../../services/tarot-card.service';
 import { TarotCard } from '../../models/tarot-card.model';
 
 @Component({
-  selector: 'app-setting',
-  templateUrl: './setting.component.html',
-  styleUrls: ['./setting.component.css']
+  selector: 'app-tarot-card-mgmt',
+  templateUrl: './tarot-card-mgmt.component.html',
+  styleUrls: ['./tarot-card-mgmt.component.css']
 })
-export class SettingComponent implements OnInit {
+export class TarotCardMgmtComponent implements OnInit {
   cards: TarotCard[] = [];
   filteredCards: TarotCard[] = [];
   loading: boolean = true;
@@ -147,13 +147,6 @@ export class SettingComponent implements OnInit {
     return this.isCardUpright(cardId) ? '正位' : '逆位';
   }
 
-  // Get keywords for current position
-  getKeywords(card: TarotCard): string {
-    const isUpright = this.isCardUpright(card.id);
-    const keywords = isUpright ? card.keywords.upright : card.keywords.reversed;
-    return keywords && keywords.length > 0 ? keywords.join('、') : '無關鍵字';
-  }
-
   // Get tags for current position (deprecated - new API doesn't return tags)
   getTags(card: TarotCard): any[] {
     return [];
@@ -167,3 +160,4 @@ export class SettingComponent implements OnInit {
       card.official_meaning.reversed;
   }
 }
+

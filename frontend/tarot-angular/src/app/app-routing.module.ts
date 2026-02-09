@@ -4,7 +4,7 @@ import { HomeComponent } from './pages/home/home.component';
 import { NewSpreadComponent } from './pages/new-spread/new-spread.component';
 import { HistoryComponent } from './pages/history/history.component';
 import { AnalysisComponent } from './pages/analysis/analysis.component';
-import { SettingComponent } from './pages/setting/setting.component';
+import { TarotCardMgmtComponent } from './pages/tarot-card-mgmt/tarot-card-mgmt.component';
 import { DetailComponent } from './pages/detail/detail.component';
 
 const routes: Routes = [
@@ -13,7 +13,7 @@ const routes: Routes = [
   { path: 'new-spread', component: NewSpreadComponent },
   { path: 'history', component: HistoryComponent },
   { path: 'analysis', component: AnalysisComponent },
-  { path: 'setting', component: SettingComponent },
+  { path: 'tarot_card_mgmt', component: TarotCardMgmtComponent },
   { path: 'detail/:id', component: DetailComponent },
   { path: '**', redirectTo: '' }
 ];

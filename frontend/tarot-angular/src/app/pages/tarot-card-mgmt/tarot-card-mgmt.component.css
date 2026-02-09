@@ -318,15 +318,6 @@
   margin-bottom: 12px;
 }
 
-/* Keywords Section */
-.keywords-section {
-  margin: 15px 0;
-  padding: 12px;
-  background: #f8f9fa;
-  border-radius: 10px;
-  text-align: left;
-}
-
 .section-label {
   font-size: 0.85rem;
   font-weight: 700;
@@ -334,13 +325,6 @@
   margin: 0 0 8px 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-}
-
-.keywords-text {
-  font-size: 0.9rem;
-  color: #666;
-  line-height: 1.6;
-  margin: 0;
 }
 
 /* Tags Section */
@@ -524,7 +508,6 @@
     font-size: 1.3rem;
   }
 
-  .keywords-section,
   .meaning-preview {
     padding: 10px;
   }
@@ -533,7 +516,6 @@
     font-size: 0.75rem;
   }
 
-  .keywords-text,
   .meaning-text {
     font-size: 0.8rem;
   }
