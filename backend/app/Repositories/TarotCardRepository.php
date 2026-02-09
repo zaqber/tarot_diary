@@ -51,6 +51,6 @@ class TarotCardRepository implements TarotCardRepositoryInterface
      */
     public function findById(int $id)
     {
-        return TarotCard::with('suit')->find($id);
+        return TarotCard::with(['suit', 'tags'])->find($id);
     }
 }
