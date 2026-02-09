@@ -11,7 +11,7 @@ import { HomeComponent } from './pages/home/home.component';
 import { NewSpreadComponent } from './pages/new-spread/new-spread.component';
 import { HistoryComponent } from './pages/history/history.component';
 import { AnalysisComponent } from './pages/analysis/analysis.component';
-import { SettingComponent } from './pages/setting/setting.component';
+import { TarotCardMgmtComponent } from './pages/tarot-card-mgmt/tarot-card-mgmt.component';
 import { DetailComponent } from './pages/detail/detail.component';
 
 @NgModule({
@@ -23,7 +23,7 @@ import { DetailComponent } from './pages/detail/detail.component';
     NewSpreadComponent,
     HistoryComponent,
     AnalysisComponent,
-    SettingComponent,
+    TarotCardMgmtComponent,
     DetailComponent
   ],
   imports: [

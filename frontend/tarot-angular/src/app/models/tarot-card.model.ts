@@ -12,12 +12,6 @@ export interface CardMeaning {
   reversed: string;
 }
 
-// 關鍵字介面
-export interface CardKeywords {
-  upright: string[];
-  reversed: string[];
-}
-
 // 圖片介面
 export interface CardImages {
   upright: string | null;
@@ -35,7 +29,6 @@ export interface TarotCard {
   suit?: Suit;
   official_meaning: CardMeaning;
   self_definition: CardMeaning;
-  keywords: CardKeywords;
   images: CardImages;
   created_at: string;
   updated_at: string;
