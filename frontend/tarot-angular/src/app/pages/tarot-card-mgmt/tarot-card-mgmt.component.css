@@ -397,6 +397,58 @@
   text-align: left;
 }
 
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 40px;
+  padding: 20px 0;
+}
+
+.page-btn {
+  padding: 10px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background: #fff;
+  color: #333;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.page-btn:hover:not(:disabled):not(.active) {
+  border-color: #029fe7;
+  color: #029fe7;
+  background: #f0f8ff;
+}
+
+.page-btn.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border-color: transparent;
+}
+
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.page-num {
+  min-width: 44px;
+  text-align: center;
+}
+
+.page-info {
+  font-size: 0.95rem;
+  color: #666;
+  font-weight: 600;
+  margin-left: 12px;
+}
+
 /* No Results */
 .no-results {
   text-align: center;

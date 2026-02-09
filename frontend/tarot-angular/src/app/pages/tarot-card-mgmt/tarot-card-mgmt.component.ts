@@ -1,26 +1,37 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { TarotCardService } from '../../services/tarot-card.service';
-import { TarotCard } from '../../models/tarot-card.model';
+import { TarotCard, TagItem } from '../../models/tarot-card.model';
 
 @Component({
   selector: 'app-tarot-card-mgmt',
   templateUrl: './tarot-card-mgmt.component.html',
   styleUrls: ['./tarot-card-mgmt.component.css']
 })
-export class TarotCardMgmtComponent implements OnInit {
+export class TarotCardMgmtComponent implements OnInit, OnDestroy {
   cards: TarotCard[] = [];
-  filteredCards: TarotCard[] = [];
   loading: boolean = true;
   error: string | null = null;
-  
+
   // Filter options
   selectedType: string = 'all';
   selectedSuit: number | null = null;
   searchKeyword: string = '';
 
+  // Pagination
+  currentPage: number = 1;
+  totalPages: number = 1;
+  totalCards: number = 0;
+  perPage: number = 12;
+
   // Card position state (true = upright, false = reversed)
   cardPositions: Map<number, boolean> = new Map();
+
+  // Search debounce
+  private searchSubject = new Subject<string>();
+  private destroy$ = new Subject<void>();
 
   // Suit options
   suits = [
@@ -36,20 +47,53 @@ export class TarotCardMgmtComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.loadAllCards();
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      this.currentPage = 1;
+      this.loadCards();
+    });
+
+    this.loadCards();
   }
 
-  loadAllCards(): void {
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  loadCards(): void {
     this.loading = true;
     this.error = null;
 
-    this.tarotCardService.getAllCards({ per_page: 100 }).subscribe({
+    const params: any = {
+      per_page: this.perPage,
+      page: this.currentPage,
+    };
+
+    if (this.selectedType !== 'all') {
+      params.card_type = this.selectedType as 'major' | 'minor';
+    }
+    if (this.selectedSuit !== null) {
+      params.suit_id = this.selectedSuit;
+    }
+    if (this.searchKeyword.trim()) {
+      params.search = this.searchKeyword.trim();
+    }
+
+    this.tarotCardService.getAllCards(params).subscribe({
       next: (response) => {
         this.cards = response.data;
-        this.filteredCards = [...this.cards];
-        // Initialize all cards as upright
+        this.currentPage = response.meta.current_page;
+        this.totalPages = response.meta.last_page;
+        this.totalCards = response.meta.total;
+        // Initialize new cards as upright
         this.cards.forEach(card => {
-          this.cardPositions.set(card.id, true);
+          if (!this.cardPositions.has(card.id)) {
+            this.cardPositions.set(card.id, true);
+          }
         });
         this.loading = false;
       },
@@ -61,62 +105,70 @@ export class TarotCardMgmtComponent implements OnInit {
     });
   }
 
-  applyFilters(): void {
-    this.filteredCards = this.cards.filter(card => {
-      // Type filter
-      // 注意：card_type 現在是翻譯後的文字（如 "大牌"、"小牌"），需要特殊處理
-      if (this.selectedType !== 'all') {
-        const cardTypeMatch = this.selectedType === 'major' 
-          ? (card.card_type === '大牌' || card.card_type === 'Major Arcana')
-          : (card.card_type === '小牌' || card.card_type === 'Minor Arcana');
-        if (!cardTypeMatch) {
-          return false;
-        }
-      }
-
-      // Suit filter (only for minor cards)
-      if (this.selectedSuit && card.suit && card.suit.id !== this.selectedSuit) {
-        return false;
-      }
-
-      // Search keyword filter
-      if (this.searchKeyword) {
-        const keyword = this.searchKeyword.toLowerCase();
-        return card.name.toLowerCase().includes(keyword) || 
-               card.name_zh.toLowerCase().includes(keyword);
-      }
-
-      return true;
-    });
-  }
-
   onTypeChange(type: string): void {
     this.selectedType = type;
     if (type === 'major') {
-      this.selectedSuit = null; // Clear suit filter for major arcana
+      this.selectedSuit = null;
     }
-    this.applyFilters();
+    this.currentPage = 1;
+    this.loadCards();
   }
 
   onSuitChange(suitId: number | null): void {
     this.selectedSuit = suitId;
     if (suitId !== null) {
-      this.selectedType = 'minor'; // Automatically set to minor when selecting suit
+      this.selectedType = 'minor';
     }
-    this.applyFilters();
+    this.currentPage = 1;
+    this.loadCards();
   }
 
   onSearchChange(): void {
-    this.applyFilters();
+    this.searchSubject.next(this.searchKeyword);
   }
 
   clearFilters(): void {
     this.selectedType = 'all';
     this.selectedSuit = null;
     this.searchKeyword = '';
-    this.filteredCards = [...this.cards];
+    this.currentPage = 1;
+    this.loadCards();
   }
 
+  // Pagination
+  goToPage(page: number): void {
+    if (page < 1 || page > this.totalPages || page === this.currentPage) {
+      return;
+    }
+    this.currentPage = page;
+    this.loadCards();
+  }
+
+  get pageNumbers(): number[] {
+    const pages: number[] = [];
+    const maxVisible = 5;
+    let start = Math.max(1, this.currentPage - Math.floor(maxVisible / 2));
+    let end = Math.min(this.totalPages, start + maxVisible - 1);
+
+    if (end - start + 1 < maxVisible) {
+      start = Math.max(1, end - maxVisible + 1);
+    }
+
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    return pages;
+  }
+
+  get rangeStart(): number {
+    return (this.currentPage - 1) * this.perPage + 1;
+  }
+
+  get rangeEnd(): number {
+    return Math.min(this.currentPage * this.perPage, this.totalCards);
+  }
+
+  // Card helpers
   getCardImage(id: number): string {
     return this.tarotCardService.getCardImagePath(id);
   }
@@ -126,38 +178,41 @@ export class TarotCardMgmtComponent implements OnInit {
   }
 
   getCardTypeText(type: string): string {
-    // card_type 現在已經是翻譯後的文字，直接返回
     return type;
   }
 
-  // Toggle card position between upright and reversed
   toggleCardPosition(event: Event, cardId: number): void {
-    event.stopPropagation(); // Prevent triggering card detail navigation
+    event.stopPropagation();
     const currentPosition = this.cardPositions.get(cardId) || true;
     this.cardPositions.set(cardId, !currentPosition);
   }
 
-  // Check if card is upright
   isCardUpright(cardId: number): boolean {
     return this.cardPositions.get(cardId) !== false;
   }
 
-  // Get position text
   getPositionText(cardId: number): string {
     return this.isCardUpright(cardId) ? '正位' : '逆位';
   }
 
-  // Get tags for current position (deprecated - new API doesn't return tags)
-  getTags(card: TarotCard): any[] {
-    return [];
+  getTags(card: TarotCard): TagItem[] {
+    if (!card.tags?.active) {
+      return [];
+    }
+    const isUpright = this.isCardUpright(card.id);
+    const position = isUpright ? 'upright' : 'reversed';
+    return card.tags.active.filter(tag => tag.position === position || tag.position === 'both');
   }
 
-  // Get meaning for current position
+  getTagColorClass(index: number): string {
+    const colors = ['tag-color-1', 'tag-color-2', 'tag-color-3', 'tag-color-4', 'tag-color-5', 'tag-color-6'];
+    return colors[index % colors.length];
+  }
+
   getMeaning(card: TarotCard): string {
     const isUpright = this.isCardUpright(card.id);
-    return isUpright ? 
-      card.official_meaning.upright : 
+    return isUpright ?
+      card.official_meaning.upright :
       card.official_meaning.reversed;
   }
 }
-

@@ -20,15 +20,19 @@ export class TarotCardService {
    */
   getAllCards(params?: {
     per_page?: number;
+    page?: number;
     card_type?: 'major' | 'minor';
     suit_id?: number;
     search?: string;
   }): Observable<TarotCardListResponse> {
     let httpParams = new HttpParams();
-    
+
     if (params) {
       if (params.per_page) {
         httpParams = httpParams.set('per_page', params.per_page.toString());
+      }
+      if (params.page) {
+        httpParams = httpParams.set('page', params.page.toString());
       }
       if (params.card_type) {
         httpParams = httpParams.set('card_type', params.card_type);
