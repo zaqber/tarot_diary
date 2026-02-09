@@ -47,10 +47,17 @@ class TarotCardController extends Controller
 
         $cards = $this->service->getCards($params);
 
-        return $this->successResponse(
-            TarotCardResource::collection($cards),
-            '取得塔羅牌列表成功'
-        );
+        return response()->json([
+            'success' => true,
+            'message' => '取得塔羅牌列表成功',
+            'data' => TarotCardResource::collection($cards),
+            'meta' => [
+                'current_page' => $cards->currentPage(),
+                'last_page' => $cards->lastPage(),
+                'per_page' => $cards->perPage(),
+                'total' => $cards->total(),
+            ],
+        ]);
     }
 
     /**

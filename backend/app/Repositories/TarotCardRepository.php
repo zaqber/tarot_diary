@@ -37,7 +37,7 @@ class TarotCardRepository implements TarotCardRepositoryInterface
             });
         }
 
-        return $query->with('suit')
+        return $query->with(['suit', 'tags'])
                     ->orderBy('card_type')
                     ->orderBy('number')
                     ->paginate($perPage);
