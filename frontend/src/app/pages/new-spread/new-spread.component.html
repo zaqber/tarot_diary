@@ -1,6 +1,7 @@
 <!-- Section 1: Start My Day（尚未抽完三張時才顯示） -->
 <section class="section-1" *ngIf="!showAboutMyDay">
   <div class="container">
+    <p class="page-date">{{ displayDate }}</p>
     <h2 class="section-title">Start My Day</h2>
 
     <div class="button-group">
@@ -21,7 +22,8 @@
         <div
           *ngIf="slot.card"
           class="card"
-          [style.background-image]="'url(' + getCardImageUrl(slot.card) + ')'"
+          [class.card-reversed]="slot.isReversed"
+          [style.background-image]="'url(' + getCardImageUrl(slot.card, false) + ')'"
         ></div>
         <div *ngIf="!slot.card" class="card card-placeholder">
           <span>點我抽牌</span>
@@ -63,6 +65,23 @@
       <button type="button" class="btn btn-secondary" (click)="closeManualPick()">取消</button>
     </div>
 
+    <!-- 手動選牌：選擇正位或逆位 -->
+    <div *ngIf="manualSlot && manualStep === 'orientation' && pendingCard" class="manual-pick orientation-pick">
+      <h3>第 {{ manualSlot }} 張 — 以正位或逆位紀錄？</h3>
+      <p class="orientation-card-name">{{ pendingCard.name_zh || pendingCard.name }}</p>
+      <div class="orientation-preview">
+        <button type="button" class="orientation-option" (click)="confirmCardOrientation(false)">
+          <span class="orientation-img" [style.background-image]="'url(' + getCardImageUrl(pendingCard, false) + ')'"></span>
+          <span>正位</span>
+        </button>
+        <button type="button" class="orientation-option" (click)="confirmCardOrientation(true)">
+          <span class="orientation-img orientation-img-reversed" [style.background-image]="'url(' + getCardImageUrl(pendingCard, false) + ')'"></span>
+          <span>逆位</span>
+        </button>
+      </div>
+      <button type="button" class="btn btn-secondary" (click)="closeManualPick()">取消</button>
+    </div>
+
     <p *ngIf="errorMessage" class="error-msg">{{ errorMessage }}</p>
   </div>
 </section>
@@ -70,6 +89,7 @@
 <!-- Section 2: About My Day（三張都抽完後顯示） -->
 <section class="section-2" *ngIf="showAboutMyDay">
   <div class="container">
+    <p class="page-date">{{ displayDate }}</p>
     <h2 class="section-title">About My Day</h2>
 
     <div class="card-grid">
@@ -77,10 +97,11 @@
         <div
           *ngIf="slot.card"
           class="card"
-          [style.background-image]="'url(' + getCardImageUrl(slot.card) + ')'"
+          [class.card-reversed]="slot.isReversed"
+          [style.background-image]="'url(' + getCardImageUrl(slot.card, false) + ')'"
         ></div>
         <div class="card-info">
-          <h4 class="card-title">{{ slot.card?.name || slot.card?.name_zh || '—' }}</h4>
+          <h4 class="card-title">{{ slot.card?.name || slot.card?.name_zh || '—' }}{{ slot.isReversed ? '（逆位）' : '' }}</h4>
           <div class="tag-group tag-group-bottom">
             <button
               *ngFor="let tag of slot.card ? getActiveTags(slot.card) : []"

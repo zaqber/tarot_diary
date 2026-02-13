@@ -10,9 +10,32 @@
       尚無抽牌紀錄，到 <a routerLink="/new_spread">New Spread</a> 抽今日的牌吧。
     </div>
 
-    <div class="history-list" *ngIf="!loading && list.length > 0">
+    <!-- 今日紀錄單獨置頂、卡牌較大 -->
+    <div *ngIf="!loading && todayReading" class="history-today-wrap">
+      <h3 class="history-today-title">今天</h3>
       <a
-        *ngFor="let item of list"
+        [routerLink]="['/new_spread']"
+        [queryParams]="{ readingId: todayReading.id }"
+        class="history-item history-item-today"
+      >
+        <span class="history-date">{{ formatDate(todayReading.reading_date) }}</span>
+        <div class="history-card-images">
+          <img
+            *ngFor="let sc of getOrderedCards(todayReading.spread_cards)"
+            [src]="getCardImagePath(sc.card_id)"
+            [alt]="sc.card?.name_zh || sc.card?.name"
+            class="history-card-img"
+          />
+        </div>
+        <span class="history-cards">{{ getCardNames(todayReading) }}</span>
+        <span class="history-link">查看 →</span>
+      </a>
+    </div>
+
+    <!-- 過往紀錄：三天並排 -->
+    <div class="history-list" *ngIf="!loading && pastList.length > 0">
+      <a
+        *ngFor="let item of pastList"
         [routerLink]="['/new_spread']"
         [queryParams]="{ readingId: item.id }"
         class="history-item"

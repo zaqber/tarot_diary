@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { SpreadReadingDetail } from '../models/spread-reading.model';
+import { getTodayDateStringInTaipei } from '../utils/date.util';
 
 export interface CreateSpreadResponse {
   id: number;
@@ -50,10 +51,12 @@ export class SpreadService {
 
   /**
    * 取得當天的牌陣（一筆），若該日尚無紀錄會 404
+   * 使用台北時間的今日日期，與後端 APP_TIMEZONE=Asia/Taipei 一致
    */
   getTodayReading(): Observable<{ data: SpreadReadingDetail }> {
+    const today = getTodayDateStringInTaipei();
     return this.http.get<{ data: SpreadReadingDetail }>(this.apiUrl, {
-      params: { date: 'today' }
+      params: { date: today }
     });
   }
 

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { SpreadService, SpreadReadingListItem } from '../../services/spread.service';
 import { TarotCardService } from '../../services/tarot-card.service';
+import { getTodayDateStringInTaipei, formatDateDisplay } from '../../utils/date.util';
 
 @Component({
   selector: 'app-history',
@@ -11,6 +12,22 @@ export class HistoryComponent implements OnInit {
   list: SpreadReadingListItem[] = [];
   loading = true;
   errorMessage = '';
+
+  /** 今日的紀錄（若有）單獨顯示在最上面 */
+  get todayReading(): SpreadReadingListItem | null {
+    const today = this.getTodayDateString();
+    return this.list.find(item => item.reading_date === today) ?? null;
+  }
+
+  /** 過往紀錄（排除今天），供下方網格顯示 */
+  get pastList(): SpreadReadingListItem[] {
+    const today = this.getTodayDateString();
+    return this.list.filter(item => item.reading_date !== today);
+  }
+
+  private getTodayDateString(): string {
+    return getTodayDateStringInTaipei();
+  }
 
   constructor(
     private spreadService: SpreadService,
@@ -44,9 +61,7 @@ export class HistoryComponent implements OnInit {
   }
 
   formatDate(dateStr: string): string {
-    if (!dateStr) return '—';
-    const d = new Date(dateStr);
-    return isNaN(d.getTime()) ? dateStr : `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
+    return formatDateDisplay(dateStr);
   }
 
   getOrderedCards(spreadCards: SpreadReadingListItem['spread_cards']): Array<{ card_id: number; card: { id: number; name: string; name_zh: string } | null }> {

@@ -6,10 +6,13 @@ import { SuitService } from '../../services/suit.service';
 import { TarotCard } from '../../models/tarot-card.model';
 import { SpreadReadingDetail } from '../../models/spread-reading.model';
 import { Suit } from '../../services/suit.service';
+import { getTodayDateStringInTaipei } from '../../utils/date.util';
 
 interface SlotCard {
   position_number: number;
   card: TarotCard | null;
+  /** 是否為逆位 */
+  isReversed: boolean;
   /** 符合當天狀態的 tag id 列表（點選後由後端紀錄） */
   selectedTagIds: number[];
 }
@@ -22,9 +25,9 @@ interface SlotCard {
 export class NewSpreadComponent implements OnInit {
   readingId: number | null = null;
   slots: SlotCard[] = [
-    { position_number: 1, card: null, selectedTagIds: [] },
-    { position_number: 2, card: null, selectedTagIds: [] },
-    { position_number: 3, card: null, selectedTagIds: [] }
+    { position_number: 1, card: null, isReversed: false, selectedTagIds: [] },
+    { position_number: 2, card: null, isReversed: false, selectedTagIds: [] },
+    { position_number: 3, card: null, isReversed: false, selectedTagIds: [] }
   ];
   readingDetail: SpreadReadingDetail | null = null;
 
@@ -32,8 +35,10 @@ export class NewSpreadComponent implements OnInit {
   autoDrawing = false;
   /** 手動選牌：正在選的格子 1|2|3 */
   manualSlot: 1 | 2 | 3 | null = null;
-  /** 手動選牌步驟：先選花色，再選牌 */
-  manualStep: 'suit' | 'card' = 'suit';
+  /** 手動選牌步驟：先選花色 → 選牌 → 選正逆位 */
+  manualStep: 'suit' | 'card' | 'orientation' = 'suit';
+  /** 手動選牌時暫存的牌（選完牌後要選正/逆位） */
+  pendingCard: TarotCard | null = null;
   /** 花色選項（含「大牌」） */
   suitOptions: Array<{ id: number | null; name_zh: string }> = [];
   /** 依花色/大牌篩選出的牌列表，供使用者點選 */
@@ -68,9 +73,24 @@ export class NewSpreadComponent implements OnInit {
       }
     }
     this.spreadService.getTodayReading().subscribe({
-      next: (res: any) => this.applyReadingDetail(res.data ?? res),
+      next: (res: any) => {
+        const data = res.data ?? res;
+        if (data?.reading_date && data.reading_date !== getTodayDateStringInTaipei()) {
+          // 回傳的不是「今天」的紀錄（例如時區差異），不套用，顯示空白牌陣
+          return;
+        }
+        this.applyReadingDetail(data);
+      },
       error: () => {}
     });
+  }
+
+  /** 畫面上要顯示的日期（今日或該筆牌陣的日期），以台北時間為準 */
+  get displayDate(): string {
+    const dateStr = this.readingDetail?.reading_date ?? getTodayDateStringInTaipei();
+    if (!dateStr) return '';
+    const [y, m, d] = dateStr.split('-');
+    return `${y}年${parseInt(m, 10)}月${parseInt(d, 10)}日`;
   }
 
   private applyReadingDetail(detail: SpreadReadingDetail): void {
@@ -81,6 +101,7 @@ export class NewSpreadComponent implements OnInit {
       return {
         position_number: pos,
         card: sc?.card ?? null,
+        isReversed: sc?.is_reversed ?? false,
         selectedTagIds: sc?.selected_tag_ids ?? []
       };
     });
@@ -138,9 +159,9 @@ export class NewSpreadComponent implements OnInit {
               return;
             }
             this.addCardsThenRefresh(id, [
-              { position: 1, card: cards[0] },
-              { position: 2, card: cards[1] },
-              { position: 3, card: cards[2] }
+              { position: 1, card: cards[0], isReversed: Math.random() < 0.5 },
+              { position: 2, card: cards[1], isReversed: Math.random() < 0.5 },
+              { position: 3, card: cards[2], isReversed: Math.random() < 0.5 }
             ]);
           },
           error: () => {
@@ -158,7 +179,7 @@ export class NewSpreadComponent implements OnInit {
 
   private addCardsThenRefresh(
     rid: number,
-    items: Array<{ position: number; card: TarotCard }>
+    items: Array<{ position: number; card: TarotCard; isReversed: boolean }>
   ): void {
     let done = 0;
     const total = items.length;
@@ -169,8 +190,8 @@ export class NewSpreadComponent implements OnInit {
         this.refreshReading(rid);
       }
     };
-    items.forEach(({ position, card }) => {
-      this.spreadService.addCard(rid, position, card.id, false).subscribe({
+    items.forEach(({ position, card, isReversed }) => {
+      this.spreadService.addCard(rid, position, card.id, isReversed).subscribe({
         next: () => onFinish(),
         error: () => {
           this.autoDrawing = false;
@@ -204,6 +225,7 @@ export class NewSpreadComponent implements OnInit {
           this.autoDrawing = false;
           this.manualSlot = pos;
           this.manualStep = 'suit';
+          this.pendingCard = null;
           this.cardsForPick = [];
         },
         error: () => {
@@ -214,6 +236,7 @@ export class NewSpreadComponent implements OnInit {
     } else {
       this.manualSlot = pos;
       this.manualStep = 'suit';
+      this.pendingCard = null;
       this.cardsForPick = [];
     }
   }
@@ -240,14 +263,22 @@ export class NewSpreadComponent implements OnInit {
     });
   }
 
-  /** 手動選牌：選定一張牌並紀錄 */
+  /** 手動選牌：選定一張牌後進入正/逆位選擇 */
   selectCard(card: TarotCard): void {
-    if (this.readingId == null || this.manualSlot == null) return;
+    if (this.manualSlot == null) return;
+    this.pendingCard = card;
+    this.manualStep = 'orientation';
+  }
+
+  /** 手動選牌：確認以正位或逆位紀錄 */
+  confirmCardOrientation(isReversed: boolean): void {
+    if (this.readingId == null || this.manualSlot == null || this.pendingCard == null) return;
     this.errorMessage = '';
-    this.spreadService.addCard(this.readingId, this.manualSlot, card.id, false).subscribe({
+    this.spreadService.addCard(this.readingId, this.manualSlot, this.pendingCard.id, isReversed).subscribe({
       next: () => {
         this.manualSlot = null;
         this.manualStep = 'suit';
+        this.pendingCard = null;
         this.cardsForPick = [];
         this.refreshReading(this.readingId!);
       },
@@ -260,6 +291,7 @@ export class NewSpreadComponent implements OnInit {
   closeManualPick(): void {
     this.manualSlot = null;
     this.manualStep = 'suit';
+    this.pendingCard = null;
     this.cardsForPick = [];
   }
 
