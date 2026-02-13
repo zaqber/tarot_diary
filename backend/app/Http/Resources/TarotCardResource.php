@@ -28,6 +28,7 @@ class TarotCardResource extends JsonResource
                     'name' => $tag->name,
                     'name_zh' => $tag->name_zh,
                     'position' => $tag->pivot->position,
+                    'color' => $tag->color ?? null,
                 ];
 
                 // 區分系統預設和用戶自訂
@@ -54,6 +55,7 @@ class TarotCardResource extends JsonResource
                     'name' => $tag->name,
                     'name_zh' => $tag->name_zh,
                     'position' => $tag->pivot->position,
+                    'color' => $tag->color ?? null,
                 ];
             })->toArray();
 
@@ -65,6 +67,7 @@ class TarotCardResource extends JsonResource
                         'name' => $tag->name,
                         'name_zh' => $tag->name_zh,
                         'position' => $tag->pivot->position,
+                        'color' => $tag->color ?? null,
                     ];
                 })->toArray();
             }

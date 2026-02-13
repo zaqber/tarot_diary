@@ -23,6 +23,14 @@ interface TarotCardRepositoryInterface
      * @return \App\Models\TarotCard|null
      */
     public function findById(int $id);
+
+    /**
+     * 隨機取得 N 張不重複的塔羅牌
+     *
+     * @param int $count
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getRandom(int $count): \Illuminate\Database\Eloquent\Collection;
 }
 
 

@@ -8,285 +8,189 @@ use Illuminate\Support\Facades\DB;
 class CardTagsSeeder extends Seeder
 {
     /**
+     * 每張牌對應的標籤（name_zh => [ [tag_name_zh, position], ... ]）
+     * position: upright / reversed / both
+     */
+    private function getCardTagMapping(): array
+    {
+        return [
+            // ========== 大阿爾克那 ==========
+            '愚者'   => [['新開始', 'upright'], ['希望', 'upright'], ['變化', 'both'], ['焦慮', 'reversed'], ['挫折', 'reversed']],
+            '魔術師'  => [['創意', 'upright'], ['行動', 'upright'], ['自信', 'upright'], ['困惑', 'reversed']],
+            '女祭司'  => [['直覺', 'upright'], ['沉思', 'upright'], ['平靜', 'upright'], ['反思', 'both']],
+            '皇后'   => [['成長', 'upright'], ['愛', 'upright'], ['豐盛', 'upright'], ['失衡', 'reversed']],
+            '皇帝'   => [['領導', 'upright'], ['穩定', 'upright'], ['權威人物', 'upright'], ['緊張', 'reversed']],
+            '教皇'   => [['導師', 'upright'], ['學習', 'upright'], ['反思', 'upright'], ['變化', 'reversed']],
+            '戀人'   => [['愛', 'upright'], ['浪漫', 'upright'], ['決定', 'both'], ['衝突', 'reversed']],
+            '戰車'   => [['行動', 'upright'], ['突破', 'upright'], ['自信', 'upright'], ['混亂', 'reversed']],
+            '力量'   => [['自信', 'upright'], ['成長', 'upright'], ['平衡', 'upright'], ['恐懼', 'reversed']],
+            '隱者'   => [['沉思', 'upright'], ['反思', 'upright'], ['孤獨', 'upright'], ['等待', 'reversed']],
+            '命運之輪' => [['變化', 'both'], ['機會', 'upright'], ['轉化', 'both'], ['失落', 'reversed']],
+            '正義'   => [['決定', 'upright'], ['平衡', 'upright'], ['反思', 'upright'], ['困惑', 'reversed']],
+            '倒吊者'  => [['等待', 'upright'], ['反思', 'upright'], ['轉化', 'upright'], ['行動', 'reversed']],
+            '死神'   => [['結束', 'upright'], ['轉化', 'upright'], ['新開始', 'upright'], ['恐懼', 'reversed']],
+            '節制'   => [['平衡', 'upright'], ['平靜', 'upright'], ['療癒', 'upright'], ['失衡', 'reversed']],
+            '惡魔'   => [['緊張', 'upright'], ['困惑', 'upright'], ['障礙', 'upright'], ['突破', 'reversed']],
+            '高塔'   => [['變化', 'upright'], ['混亂', 'upright'], ['突破', 'upright'], ['恐懼', 'reversed']],
+            '星星'   => [['希望', 'upright'], ['療癒', 'upright'], ['平靜', 'upright'], ['失落', 'reversed']],
+            '月亮'   => [['恐懼', 'upright'], ['困惑', 'upright'], ['直覺', 'upright'], ['平靜', 'reversed']],
+            '太陽'   => [['喜悅', 'upright'], ['成功', 'upright'], ['成就', 'upright'], ['悲傷', 'reversed']],
+            '審判'   => [['反思', 'upright'], ['轉化', 'upright'], ['決定', 'upright'], ['後悔', 'reversed']],
+            '世界'   => [['成就', 'upright'], ['完成', 'upright'], ['新開始', 'upright'], ['等待', 'reversed']],
+
+            // ========== 權杖 ==========
+            '權杖王牌' => [['新開始', 'upright'], ['創意', 'upright'], ['機會', 'upright']],
+            '權杖二'  => [['決定', 'upright'], ['等待', 'upright'], ['機會', 'reversed']],
+            '權杖三'  => [['旅行', 'upright'], ['機會', 'upright'], ['合作', 'upright']],
+            '權杖四'  => [['慶祝', 'upright'], ['穩定', 'upright'], ['家人', 'upright']],
+            '權杖五'  => [['衝突', 'upright'], ['挑戰', 'upright'], ['緊張', 'reversed']],
+            '權杖六'  => [['成功', 'upright'], ['自信', 'upright'], ['成就', 'upright']],
+            '權杖七'  => [['挑戰', 'upright'], ['行動', 'upright'], ['自信', 'reversed']],
+            '權杖八'  => [['行動', 'upright'], ['變化', 'upright'], ['旅行', 'upright']],
+            '權杖九'  => [['等待', 'upright'], ['挑戰', 'upright'], ['焦慮', 'reversed']],
+            '權杖十'  => [['工作', 'upright'], ['挑戰', 'upright'], ['壓力', 'upright']],
+            '權杖侍者' => [['創意', 'upright'], ['新開始', 'upright'], ['學習', 'upright']],
+            '權杖騎士' => [['行動', 'upright'], ['變化', 'upright'], ['旅行', 'upright']],
+            '權杖王后' => [['自信', 'upright'], ['領導', 'upright'], ['熱情', 'upright']],
+            '權杖國王' => [['領導', 'upright'], ['事業', 'upright'], ['穩定', 'upright']],
+
+            // ========== 聖杯 ==========
+            '聖杯王牌' => [['愛', 'upright'], ['新開始', 'upright'], ['連結', 'upright']],
+            '聖杯二'  => [['浪漫', 'upright'], ['合作', 'upright'], ['連結', 'upright']],
+            '聖杯三'  => [['慶祝', 'upright'], ['朋友', 'upright'], ['喜悅', 'upright']],
+            '聖杯四'  => [['沉思', 'upright'], ['等待', 'upright'], ['冷漠', 'upright']],
+            '聖杯五'  => [['悲傷', 'upright'], ['失落', 'upright'], ['療癒', 'reversed']],
+            '聖杯六'  => [['家人', 'upright'], ['親情', 'upright'], ['平靜', 'upright']],
+            '聖杯七'  => [['困惑', 'upright'], ['選擇', 'upright'], ['幻想', 'upright']],
+            '聖杯八'  => [['變化', 'upright'], ['結束', 'upright'], ['追尋', 'upright']],
+            '聖杯九'  => [['喜悅', 'upright'], ['成就', 'upright'], ['滿足', 'upright']],
+            '聖杯十'  => [['快樂', 'upright'], ['家人', 'upright'], ['親情', 'upright']],
+            '聖杯侍者' => [['直覺', 'upright'], ['創意', 'upright'], ['學習', 'upright']],
+            '聖杯騎士' => [['浪漫', 'upright'], ['感性', 'upright'], ['追求', 'upright']],
+            '聖杯王后' => [['愛', 'upright'], ['直覺', 'upright'], ['療癒', 'upright']],
+            '聖杯國王' => [['領導', 'upright'], ['平靜', 'upright'], ['情感成熟', 'upright']],
+
+            // ========== 寶劍 ==========
+            '寶劍王牌' => [['突破', 'upright'], ['決定', 'upright'], ['真相', 'upright']],
+            '寶劍二'  => [['決定', 'upright'], ['等待', 'upright'], ['困惑', 'upright']],
+            '寶劍三'  => [['悲傷', 'upright'], ['失落', 'upright'], ['背叛', 'upright'], ['療癒', 'reversed']],
+            '寶劍四'  => [['等待', 'upright'], ['療癒', 'upright'], ['反思', 'upright']],
+            '寶劍五'  => [['衝突', 'upright'], ['緊張', 'upright'], ['和解', 'reversed']],
+            '寶劍六'  => [['過渡', 'upright'], ['療癒', 'upright'], ['旅行', 'upright']],
+            '寶劍七'  => [['策略', 'upright'], ['逃避', 'upright'], ['真相', 'reversed']],
+            '寶劍八'  => [['恐懼', 'upright'], ['障礙', 'upright'], ['突破', 'reversed']],
+            '寶劍九'  => [['焦慮', 'upright'], ['恐懼', 'upright'], ['悲傷', 'upright']],
+            '寶劍十'  => [['結束', 'upright'], ['失落', 'upright'], ['新開始', 'reversed']],
+            '寶劍侍者' => [['學習', 'upright'], ['好奇', 'upright'], ['訊息', 'upright']],
+            '寶劍騎士' => [['行動', 'upright'], ['衝動', 'upright'], ['決定', 'upright']],
+            '寶劍王后' => [['獨立', 'upright'], ['清晰', 'upright'], ['冷靜', 'upright']],
+            '寶劍國王' => [['領導', 'upright'], ['權威人物', 'upright'], ['決定', 'upright']],
+
+            // ========== 錢幣 ==========
+            '錢幣王牌' => [['新開始', 'upright'], ['機會', 'upright'], ['穩定', 'upright']],
+            '錢幣二'  => [['平衡', 'upright'], ['變化', 'upright'], ['失衡', 'reversed']],
+            '錢幣三'  => [['團隊合作', 'upright'], ['專案', 'upright'], ['合作', 'upright']],
+            '錢幣四'  => [['穩定', 'upright'], ['安全感', 'upright'], ['恐懼', 'reversed']],
+            '錢幣五'  => [['失落', 'upright'], ['孤獨', 'upright'], ['療癒', 'reversed']],
+            '錢幣六'  => [['合作', 'upright'], ['感恩', 'upright'], ['平衡', 'upright']],
+            '錢幣七'  => [['等待', 'upright'], ['反思', 'upright'], ['成長', 'upright']],
+            '錢幣八'  => [['工作', 'upright'], ['學習', 'upright'], ['成就', 'upright']],
+            '錢幣九'  => [['成功', 'upright'], ['穩定', 'upright'], ['自信', 'upright']],
+            '錢幣十'  => [['家人', 'upright'], ['穩定', 'upright'], ['成就', 'upright']],
+            '錢幣侍者' => [['學習', 'upright'], ['機會', 'upright'], ['新開始', 'upright']],
+            '錢幣騎士' => [['穩定', 'upright'], ['工作', 'upright'], ['等待', 'upright']],
+            '錢幣王后' => [['穩定', 'upright'], ['成長', 'upright'], ['家人', 'upright']],
+            '錢幣國王' => [['領導', 'upright'], ['事業', 'upright'], ['穩定', 'upright']],
+        ];
+    }
+
+    /**
+     * 標籤名稱對照：映射中使用的名稱 -> TagsSeeder 內實際的 name_zh
+     * （若無對應則該標籤會略過）
+     */
+    private function getTagNameAliases(): array
+    {
+        return [
+            '直覺' => '沉思',      // 無「直覺」則用沉思
+            '豐盛' => '成長',
+            '完成' => '成就',
+            '壓力' => '挑戰',
+            '熱情' => '創意',
+            '冷漠' => '中性',
+            '選擇' => '決定',
+            '幻想' => '困惑',
+            '追尋' => '變化',
+            '滿足' => '喜悅',
+            '感性' => '浪漫',
+            '追求' => '浪漫',
+            '情感成熟' => '平靜',
+            '真相' => '反思',
+            '策略' => '決定',
+            '逃避' => '恐懼',
+            '好奇' => '學習',
+            '訊息' => '學習',
+            '衝動' => '行動',
+            '獨立' => '自信',
+            '清晰' => '冷靜',
+            '安全感' => '穩定',
+        ];
+    }
+
+    /**
      * Run the database seeds.
-     * 
-     * 為塔羅牌建立標籤關聯的範例
-     * 展示如何為不同的牌配置正位/逆位的標籤
      */
     public function run(): void
     {
-        // 獲取卡片和標籤
         $cards = DB::table('tarot_cards')->get()->keyBy('name_zh');
         $tags = DB::table('tags')->get()->keyBy('name_zh');
+        $mapping = $this->getCardTagMapping();
+        $aliases = $this->getTagNameAliases();
 
         $cardTags = [];
+        $missingTags = [];
+        $seen = [];
 
-        // ============================================
-        // 範例 1: 愚者 (The Fool)
-        // ============================================
-        if (isset($cards['愚者'])) {
-            $foolId = $cards['愚者']->id;
-            
-            // 正位標籤
-            if (isset($tags['新開始'])) {
-                $cardTags[] = [
-                    'card_id' => $foolId,
-                    'tag_id' => $tags['新開始']->id,
-                    'position' => 'upright',
-                    'is_default' => true,
-                    'user_id' => null,
-                ];
+        foreach ($cards as $card) {
+            $nameZh = $card->name_zh;
+            $pairs = $mapping[$nameZh] ?? null;
+
+            if ($pairs === null) {
+                $pairs = [['反思', 'both'], ['變化', 'both']];
             }
-            if (isset($tags['希望'])) {
+
+            foreach ($pairs as [$tagNameZh, $position]) {
+                $resolvedName = $aliases[$tagNameZh] ?? $tagNameZh;
+                $tag = $tags->get($resolvedName);
+                if (!$tag) {
+                    $missingTags[$tagNameZh] = true;
+                    continue;
+                }
+                $key = $card->id . '_' . $tag->id . '_' . $position;
+                if (isset($seen[$key])) {
+                    continue;
+                }
+                $seen[$key] = true;
                 $cardTags[] = [
-                    'card_id' => $foolId,
-                    'tag_id' => $tags['希望']->id,
-                    'position' => 'upright',
-                    'is_default' => true,
-                    'user_id' => null,
-                ];
-            }
-            if (isset($tags['冒險'])) {
-                $cardTags[] = [
-                    'card_id' => $foolId,
-                    'tag_id' => $tags['冒險']->id,
-                    'position' => 'upright',
-                    'is_default' => true,
-                    'user_id' => null,
-                ];
-            }
-            
-            // 逆位標籤
-            if (isset($tags['焦慮'])) {
-                $cardTags[] = [
-                    'card_id' => $foolId,
-                    'tag_id' => $tags['焦慮']->id,
-                    'position' => 'reversed',
-                    'is_default' => true,
-                    'user_id' => null,
-                ];
-            }
-            if (isset($tags['挫折'])) {
-                $cardTags[] = [
-                    'card_id' => $foolId,
-                    'tag_id' => $tags['挫折']->id,
-                    'position' => 'reversed',
+                    'card_id' => $card->id,
+                    'tag_id' => $tag->id,
+                    'position' => $position,
                     'is_default' => true,
                     'user_id' => null,
                 ];
             }
         }
 
-        // ============================================
-        // 範例 2: 戀人 (The Lovers)
-        // ============================================
-        if (isset($cards['戀人'])) {
-            $loversId = $cards['戀人']->id;
-            
-            // 正位標籤
-            if (isset($tags['愛'])) {
-                $cardTags[] = [
-                    'card_id' => $loversId,
-                    'tag_id' => $tags['愛']->id,
-                    'position' => 'upright',
-                    'is_default' => true,
-                    'user_id' => null,
-                ];
-            }
-            if (isset($tags['浪漫'])) {
-                $cardTags[] = [
-                    'card_id' => $loversId,
-                    'tag_id' => $tags['浪漫']->id,
-                    'position' => 'upright',
-                    'is_default' => true,
-                    'user_id' => null,
-                ];
-            }
-            if (isset($tags['決定'])) {
-                $cardTags[] = [
-                    'card_id' => $loversId,
-                    'tag_id' => $tags['決定']->id,
-                    'position' => 'both', // 正逆位都適用
-                    'is_default' => true,
-                    'user_id' => null,
-                ];
-            }
-            
-            // 逆位標籤
-            if (isset($tags['衝突'])) {
-                $cardTags[] = [
-                    'card_id' => $loversId,
-                    'tag_id' => $tags['衝突']->id,
-                    'position' => 'reversed',
-                    'is_default' => true,
-                    'user_id' => null,
-                ];
-            }
+        $missingTags = array_keys($missingTags);
+        if (!empty($missingTags)) {
+            $this->command->warn('以下標籤在 tags 表中不存在，已略過：' . implode('、', $missingTags));
         }
 
-        // ============================================
-        // 範例 3: 太陽 (The Sun)
-        // ============================================
-        if (isset($cards['太陽'])) {
-            $sunId = $cards['太陽']->id;
-            
-            // 正位標籤
-            if (isset($tags['喜悅'])) {
-                $cardTags[] = [
-                    'card_id' => $sunId,
-                    'tag_id' => $tags['喜悅']->id,
-                    'position' => 'upright',
-                    'is_default' => true,
-                    'user_id' => null,
-                ];
-            }
-            if (isset($tags['成功'])) {
-                $cardTags[] = [
-                    'card_id' => $sunId,
-                    'tag_id' => $tags['成功']->id,
-                    'position' => 'upright',
-                    'is_default' => true,
-                    'user_id' => null,
-                ];
-            }
-            if (isset($tags['成就'])) {
-                $cardTags[] = [
-                    'card_id' => $sunId,
-                    'tag_id' => $tags['成就']->id,
-                    'position' => 'upright',
-                    'is_default' => true,
-                    'user_id' => null,
-                ];
-            }
-        }
+        // 先刪除既有預設關聯，再寫入（避免重複執行時重複資料）
+        DB::table('card_tags')->where('is_default', true)->whereNull('user_id')->delete();
 
-        // ============================================
-        // 範例 4: 寶劍三 (Three of Swords)
-        // ============================================
-        if (isset($cards['寶劍三'])) {
-            $threeSwordsId = $cards['寶劍三']->id;
-            
-            // 正位標籤
-            if (isset($tags['悲傷'])) {
-                $cardTags[] = [
-                    'card_id' => $threeSwordsId,
-                    'tag_id' => $tags['悲傷']->id,
-                    'position' => 'upright',
-                    'is_default' => true,
-                    'user_id' => null,
-                ];
-            }
-            if (isset($tags['失落'])) {
-                $cardTags[] = [
-                    'card_id' => $threeSwordsId,
-                    'tag_id' => $tags['失落']->id,
-                    'position' => 'upright',
-                    'is_default' => true,
-                    'user_id' => null,
-                ];
-            }
-            if (isset($tags['背叛'])) {
-                $cardTags[] = [
-                    'card_id' => $threeSwordsId,
-                    'tag_id' => $tags['背叛']->id,
-                    'position' => 'upright',
-                    'is_default' => true,
-                    'user_id' => null,
-                ];
-            }
-            
-            // 逆位標籤
-            if (isset($tags['療癒'])) {
-                $cardTags[] = [
-                    'card_id' => $threeSwordsId,
-                    'tag_id' => $tags['療癒']->id,
-                    'position' => 'reversed',
-                    'is_default' => true,
-                    'user_id' => null,
-                ];
-            }
-        }
-
-        // ============================================
-        // 範例 5: 聖杯十 (Ten of Cups)
-        // ============================================
-        if (isset($cards['聖杯十'])) {
-            $tenCupsId = $cards['聖杯十']->id;
-            
-            // 正位標籤
-            if (isset($tags['快樂'])) {
-                $cardTags[] = [
-                    'card_id' => $tenCupsId,
-                    'tag_id' => $tags['快樂']->id,
-                    'position' => 'upright',
-                    'is_default' => true,
-                    'user_id' => null,
-                ];
-            }
-            if (isset($tags['家人'])) {
-                $cardTags[] = [
-                    'card_id' => $tenCupsId,
-                    'tag_id' => $tags['家人']->id,
-                    'position' => 'upright',
-                    'is_default' => true,
-                    'user_id' => null,
-                ];
-            }
-            if (isset($tags['親情'])) {
-                $cardTags[] = [
-                    'card_id' => $tenCupsId,
-                    'tag_id' => $tags['親情']->id,
-                    'position' => 'upright',
-                    'is_default' => true,
-                    'user_id' => null,
-                ];
-            }
-        }
-
-        // ============================================
-        // 範例 6: 權杖王牌 (Ace of Wands)
-        // ============================================
-        if (isset($cards['權杖王牌'])) {
-            $aceWandsId = $cards['權杖王牌']->id;
-            
-            // 正位標籤
-            if (isset($tags['新開始'])) {
-                $cardTags[] = [
-                    'card_id' => $aceWandsId,
-                    'tag_id' => $tags['新開始']->id,
-                    'position' => 'upright',
-                    'is_default' => true,
-                    'user_id' => null,
-                ];
-            }
-            if (isset($tags['創意'])) {
-                $cardTags[] = [
-                    'card_id' => $aceWandsId,
-                    'tag_id' => $tags['創意']->id,
-                    'position' => 'upright',
-                    'is_default' => true,
-                    'user_id' => null,
-                ];
-            }
-            if (isset($tags['機會'])) {
-                $cardTags[] = [
-                    'card_id' => $aceWandsId,
-                    'tag_id' => $tags['機會']->id,
-                    'position' => 'upright',
-                    'is_default' => true,
-                    'user_id' => null,
-                ];
-            }
-        }
-
-        // 批量插入
         if (!empty($cardTags)) {
             DB::table('card_tags')->insert($cardTags);
-            $this->command->info('✅ 已為 ' . count($cardTags) . ' 個牌卡-標籤關聯建立範例資料');
+            $this->command->info('已為全部 ' . $cards->count() . ' 張塔羅牌建立共 ' . count($cardTags) . ' 筆標籤關聯。');
         }
-
-        $this->command->info('');
-        $this->command->info('💡 提示：這只是範例資料，實際應用中需要為所有 78 張牌配置完整的標籤');
-        $this->command->info('   您可以根據每張牌的牌義，為其配置適合的標籤');
     }
 }

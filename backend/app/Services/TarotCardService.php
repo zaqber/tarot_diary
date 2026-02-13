@@ -50,6 +50,17 @@ class TarotCardService
     }
 
     /**
+     * 隨機取得 N 張不重複的塔羅牌（用於自動抽牌）
+     *
+     * @param int $count
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getRandomCards(int $count = 3): \Illuminate\Database\Eloquent\Collection
+    {
+        return $this->repository->getRandom($count);
+    }
+
+    /**
      * 取得牌的系統預設標籤
      *
      * @param int $cardId

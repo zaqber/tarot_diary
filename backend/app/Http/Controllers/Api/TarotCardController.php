@@ -61,6 +61,22 @@ class TarotCardController extends Controller
     }
 
     /**
+     * 隨機取得 N 張塔羅牌（用於自動抽牌）
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function random(Request $request): JsonResponse
+    {
+        $count = min(max((int) $request->input('count', 3), 1), 10);
+        $cards = $this->service->getRandomCards($count);
+        return $this->successResponse(
+            TarotCardResource::collection($cards),
+            '隨機抽牌成功'
+        );
+    }
+
+    /**
      * 取得單張塔羅牌詳細資訊
      *
      * 根據塔羅牌 ID 取得完整的牌資訊，包含花色、牌義、標籤等。

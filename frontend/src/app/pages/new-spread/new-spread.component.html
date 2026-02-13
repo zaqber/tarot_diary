@@ -1,0 +1,96 @@
+<!-- Section 1: Start My Day（尚未抽完三張時才顯示） -->
+<section class="section-1" *ngIf="!showAboutMyDay">
+  <div class="container">
+    <h2 class="section-title">Start My Day</h2>
+
+    <div class="button-group">
+      <button type="button" class="btn" (click)="autoDraw()" [disabled]="autoDrawing">
+        {{ autoDrawing ? '抽牌中…' : '自動抽牌' }}
+      </button>
+    </div>
+
+    <p class="hint">或點選下方牌位，由自己真實抽牌：先選花色（大牌／權杖／聖杯／寶劍／錢幣），再選一張牌。</p>
+
+    <div class="card-grid">
+      <div
+        *ngFor="let slot of slots"
+        class="card-slot"
+        [class.filled]="slot.card"
+        (click)="onSlotClick(slot.position_number)"
+      >
+        <div
+          *ngIf="slot.card"
+          class="card"
+          [style.background-image]="'url(' + getCardImageUrl(slot.card) + ')'"
+        ></div>
+        <div *ngIf="!slot.card" class="card card-placeholder">
+          <span>點我抽牌</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 手動選牌：先選花色 -->
+    <div *ngIf="manualSlot && manualStep === 'suit'" class="manual-pick suit-pick">
+      <h3>第 {{ manualSlot }} 張 — 選擇花色</h3>
+      <div class="suit-buttons">
+        <button
+          *ngFor="let opt of suitOptions"
+          type="button"
+          class="btn suit-btn"
+          (click)="selectSuit(opt.id)"
+        >
+          {{ opt.name_zh }}
+        </button>
+      </div>
+      <button type="button" class="btn btn-secondary" (click)="closeManualPick()">取消</button>
+    </div>
+
+    <!-- 手動選牌：再選一張牌 -->
+    <div *ngIf="manualSlot && manualStep === 'card'" class="manual-pick card-pick">
+      <h3>第 {{ manualSlot }} 張 — 選擇一張牌</h3>
+      <p *ngIf="loadingCards">載入中…</p>
+      <div class="cards-for-pick">
+        <button
+          *ngFor="let c of cardsForPick"
+          type="button"
+          class="pick-card-btn"
+          (click)="selectCard(c)"
+        >
+          <span class="pick-card-img" [style.background-image]="'url(' + getCardImageUrl(c) + ')'"></span>
+          <span class="pick-card-name">{{ c.name_zh || c.name }}</span>
+        </button>
+      </div>
+      <button type="button" class="btn btn-secondary" (click)="closeManualPick()">取消</button>
+    </div>
+
+    <p *ngIf="errorMessage" class="error-msg">{{ errorMessage }}</p>
+  </div>
+</section>
+
+<!-- Section 2: About My Day（三張都抽完後顯示） -->
+<section class="section-2" *ngIf="showAboutMyDay">
+  <div class="container">
+    <h2 class="section-title">About My Day</h2>
+
+    <div class="card-grid">
+      <div *ngFor="let slot of slots" class="card-wrapper">
+        <div
+          *ngIf="slot.card"
+          class="card"
+          [style.background-image]="'url(' + getCardImageUrl(slot.card) + ')'"
+        ></div>
+        <div class="card-info">
+          <h4 class="card-title">{{ slot.card?.name || slot.card?.name_zh || '—' }}</h4>
+          <div class="tag-group tag-group-bottom">
+            <span
+              *ngFor="let tag of slot.card ? getActiveTags(slot.card) : []"
+              class="tag"
+              [style.background-color]="tag.color || '#666'"
+            >{{ tag.name_zh }}</span>
+            <span *ngIf="slot.card && getActiveTags(slot.card).length === 0" class="tag-none">尚無標籤</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

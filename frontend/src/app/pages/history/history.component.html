@@ -1,0 +1,26 @@
+<section class="section-1">
+  <div class="container">
+    <h2 class="section-title">每日抽牌紀錄</h2>
+    <p class="section-description">查看過去的每日三張牌陣，點「查看」可看該日的牌面與標籤。</p>
+
+    <p *ngIf="loading" class="loading-msg">載入中…</p>
+    <p *ngIf="errorMessage" class="error-msg">{{ errorMessage }}</p>
+
+    <div *ngIf="!loading && !errorMessage && list.length === 0" class="empty-msg">
+      尚無抽牌紀錄，到 <a routerLink="/new_spread">New Spread</a> 抽今日的牌吧。
+    </div>
+
+    <div class="history-list" *ngIf="!loading && list.length > 0">
+      <a
+        *ngFor="let item of list"
+        [routerLink]="['/new_spread']"
+        [queryParams]="{ readingId: item.id }"
+        class="history-item"
+      >
+        <span class="history-date">{{ formatDate(item.reading_date) }}</span>
+        <span class="history-cards">{{ getCardNames(item) }}</span>
+        <span class="history-link">查看 →</span>
+      </a>
+    </div>
+  </div>
+</section>

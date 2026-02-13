@@ -28,9 +28,9 @@ class DatabaseSeeder extends Seeder
             SpreadTypesSeeder::class,    // 牌陣類型和位置
         ]);
 
-        // 4. 將關鍵字轉換為標籤關聯
+        // 4. 建立牌卡-標籤關聯
         $this->call([
-            ConvertKeywordsToTagsSeeder::class,  // 將 tarot_cards 的 keywords 轉為 card_tags
+            CardTagsSeeder::class,  // 牌卡與標籤的關聯（card_tags）
         ]);
 
         $this->command->info('✅ 所有初始資料已成功填充！');

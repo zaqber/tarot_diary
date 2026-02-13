@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Api\SpreadReadingController;
+use App\Http\Controllers\Api\SuitController;
 use App\Http\Controllers\Api\TagController;
 use App\Http\Controllers\Api\TarotCardController;
 use Illuminate\Support\Facades\Route;
@@ -16,6 +18,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::prefix('tarot-cards')->group(function () {
+    Route::get('/random', [TarotCardController::class, 'random']);
     Route::get('/', [TarotCardController::class, 'index']);
     Route::get('/{id}', [TarotCardController::class, 'show']);
     
@@ -33,6 +36,17 @@ Route::prefix('tags')->group(function () {
     Route::post('/', [TagController::class, 'store']);
     Route::put('/{id}', [TagController::class, 'update']);
     Route::delete('/{id}', [TagController::class, 'destroy']);
+});
+
+Route::prefix('suits')->group(function () {
+    Route::get('/', [SuitController::class, 'index']);
+});
+
+Route::prefix('spread-readings')->group(function () {
+    Route::get('/', [SpreadReadingController::class, 'index']);
+    Route::post('/', [SpreadReadingController::class, 'store']);
+    Route::get('/{id}', [SpreadReadingController::class, 'show']);
+    Route::post('/{id}/cards', [SpreadReadingController::class, 'addCard']);
 });
 
 

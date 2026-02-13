@@ -53,4 +53,15 @@ class TarotCardRepository implements TarotCardRepositoryInterface
     {
         return TarotCard::with(['suit', 'tags'])->find($id);
     }
+
+    /**
+     * 隨機取得 N 張不重複的塔羅牌
+     */
+    public function getRandom(int $count): \Illuminate\Database\Eloquent\Collection
+    {
+        return TarotCard::with(['suit', 'tags'])
+            ->inRandomOrder()
+            ->limit($count)
+            ->get();
+    }
 }
