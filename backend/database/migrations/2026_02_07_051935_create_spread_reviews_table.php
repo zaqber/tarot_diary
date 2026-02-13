@@ -20,9 +20,11 @@ return new class extends Migration
             $table->text('review_note')->nullable();
             $table->text('lessons_learned')->nullable();
         });
-        
-        // Add CHECK constraint for overall_accuracy
-        DB::statement('ALTER TABLE spread_reviews ADD CONSTRAINT check_overall_accuracy CHECK (overall_accuracy BETWEEN 1 AND 5)');
+
+        // SQLite 不支援 ALTER TABLE ADD CONSTRAINT，僅在 MySQL/PostgreSQL 加上 CHECK
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement('ALTER TABLE spread_reviews ADD CONSTRAINT check_overall_accuracy CHECK (overall_accuracy BETWEEN 1 AND 5)');
+        }
     }
 
     /**

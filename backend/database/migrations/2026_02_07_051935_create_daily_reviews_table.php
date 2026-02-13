@@ -24,9 +24,11 @@ return new class extends Migration
             
             $table->index('review_time');
         });
-        
-        // Add CHECK constraint for overall_match_score
-        DB::statement('ALTER TABLE daily_reviews ADD CONSTRAINT check_overall_match_score CHECK (overall_match_score BETWEEN 1 AND 5)');
+
+        // SQLite 不支援 ALTER TABLE ADD CONSTRAINT，僅在 MySQL/PostgreSQL 加上 CHECK
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement('ALTER TABLE daily_reviews ADD CONSTRAINT check_overall_match_score CHECK (overall_match_score BETWEEN 1 AND 5)');
+        }
     }
 
     /**

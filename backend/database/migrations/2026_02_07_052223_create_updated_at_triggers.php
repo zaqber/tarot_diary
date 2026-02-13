@@ -10,6 +10,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // 僅 PostgreSQL 支援此語法；SQLite/MySQL 由 Eloquent 自動維護 updated_at
+        if (DB::getDriverName() !== 'pgsql') {
+            return;
+        }
+
         // 創建通用的 updated_at 觸發器函數
         DB::unprepared('
             CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -59,6 +64,9 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (DB::getDriverName() !== 'pgsql') {
+            return;
+        }
         DB::unprepared('DROP TRIGGER IF EXISTS update_tarot_cards_updated_at ON tarot_cards');
         DB::unprepared('DROP TRIGGER IF EXISTS update_user_journals_updated_at ON user_journals');
         DB::unprepared('DROP TRIGGER IF EXISTS update_card_statistics_last_updated ON card_statistics');
