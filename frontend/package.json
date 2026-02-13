@@ -1,0 +1,6 @@
+{
+  "name": "frontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tarot Diary frontend (靜態頁面；Angular 專案在 tarot-angular/)"
+}
