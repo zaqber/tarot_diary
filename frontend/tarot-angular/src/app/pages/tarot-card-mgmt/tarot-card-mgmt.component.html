@@ -1,0 +1,143 @@
+<!-- Main Section -->
+<section class="main-section">
+  <div class="container">
+    <h1 class="page-title">塔羅牌管理</h1>
+    <p class="page-description">瀏覽並查看所有塔羅牌的詳細資訊</p>
+
+    <!-- Filters Section -->
+    <div class="filters-container">
+      <!-- Search Bar -->
+      <div class="filter-group search-group">
+        <label for="search">搜尋：</label>
+        <input
+          type="text"
+          id="search"
+          class="search-input"
+          placeholder="搜尋塔羅牌名稱..."
+          [(ngModel)]="searchKeyword"
+          (input)="onSearchChange()">
+      </div>
+
+      <!-- Type Filter -->
+      <div class="filter-group">
+        <label for="type">類型：</label>
+        <select id="type" class="filter-select" [(ngModel)]="selectedType" (change)="onTypeChange(selectedType)">
+          <option value="all">全部</option>
+          <option value="major">大牌</option>
+          <option value="minor">小牌</option>
+        </select>
+      </div>
+
+      <!-- Suit Filter (only show when not major arcana) -->
+      <div class="filter-group" *ngIf="selectedType !== 'major'">
+        <label for="suit">花色：</label>
+        <select id="suit" class="filter-select" [(ngModel)]="selectedSuit" (change)="onSuitChange(selectedSuit)">
+          <option [ngValue]="null">全部</option>
+          <option *ngFor="let suit of suits" [ngValue]="suit.id">{{ suit.name }}</option>
+        </select>
+      </div>
+
+      <!-- Clear Filters Button -->
+      <button class="clear-btn" (click)="clearFilters()">清除篩選</button>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-container">
+      <div class="spinner"></div>
+      <p>載入中...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error" class="error-container">
+      <p class="error-message">{{ error }}</p>
+      <button class="retry-btn" (click)="loadCards()">重試</button>
+    </div>
+
+    <!-- Cards Count -->
+    <div *ngIf="!loading && !error && totalCards > 0" class="cards-count">
+      顯示第 {{ rangeStart }}-{{ rangeEnd }} 張，共 {{ totalCards }} 張塔羅牌
+    </div>
+
+    <!-- Cards Grid -->
+    <div *ngIf="!loading && !error" class="cards-grid">
+      <article
+        *ngFor="let card of cards"
+        class="card-item">
+        <div class="card-content">
+          <!-- Rotate Button -->
+          <button
+            class="rotate-btn"
+            (click)="toggleCardPosition($event, card.id)"
+            [title]="'切換至' + (isCardUpright(card.id) ? '逆位' : '正位')">
+            <span class="rotate-icon" [class.reversed]="!isCardUpright(card.id)">↻</span>
+          </button>
+
+          <!-- Position Badge -->
+          <div class="position-badge" [class.reversed]="!isCardUpright(card.id)">
+            {{ getPositionText(card.id) }}
+          </div>
+
+          <div class="card-image-wrapper" (click)="viewCardDetail(card.id)">
+            <img
+              [src]="getCardImage(card.id)"
+              [alt]="card.name"
+              class="card-image"
+              [class.card-reversed]="!isCardUpright(card.id)">
+            <div class="card-overlay">
+              <span class="view-detail-text">查看詳情</span>
+            </div>
+          </div>
+
+          <div class="card-info" (click)="viewCardDetail(card.id)">
+            <div class="card-header-info">
+              <span class="card-type-badge">{{ getCardTypeText(card.card_type) }}</span>
+              <span class="card-number">No. {{ card.number }}</span>
+            </div>
+
+            <h3 class="card-name">{{ card.name_zh }}</h3>
+            <p *ngIf="card.suit" class="card-suit">{{ card.suit.name_zh }}</p>
+
+            <!-- Tags Section -->
+            <div class="tags-section" *ngIf="getTags(card).length > 0">
+              <div class="tags-container">
+                <span *ngFor="let tag of getTags(card).slice(0, 5); let i = index"
+                      class="tag" [ngClass]="getTagColorClass(i)">
+                  {{ tag.name_zh }}
+                </span>
+                <span *ngIf="getTags(card).length > 5" class="tag more-tags">
+                  +{{ getTags(card).length - 5 }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Brief Meaning -->
+            <div class="meaning-preview">
+              <p class="meaning-text">{{ getMeaning(card).substring(0, 60) }}{{ getMeaning(card).length > 60 ? '...' : '' }}</p>
+            </div>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="!loading && !error && totalPages > 1" class="pagination">
+      <button class="page-btn" (click)="goToPage(1)" [disabled]="currentPage === 1">首頁</button>
+      <button class="page-btn" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">上一頁</button>
+      <button *ngFor="let p of pageNumbers"
+              class="page-btn page-num"
+              [class.active]="p === currentPage"
+              (click)="goToPage(p)">
+        {{ p }}
+      </button>
+      <button class="page-btn" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">下一頁</button>
+      <button class="page-btn" (click)="goToPage(totalPages)" [disabled]="currentPage === totalPages">末頁</button>
+      <span class="page-info">第 {{ currentPage }} / {{ totalPages }} 頁</span>
+    </div>
+
+    <!-- No Results -->
+    <div *ngIf="!loading && !error && cards.length === 0" class="no-results">
+      <p>找不到符合條件的塔羅牌</p>
+      <button class="clear-btn" (click)="clearFilters()">清除篩選</button>
+    </div>
+  </div>
+</section>

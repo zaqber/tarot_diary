@@ -1,0 +1,192 @@
+<section class="detail-section">
+  <div class="container">
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-container">
+      <div class="spinner"></div>
+      <p>載入中...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error" class="error-container">
+      <p class="error-message">{{ error }}</p>
+      <button class="back-btn" (click)="goBack()">返回列表</button>
+    </div>
+
+    <!-- Card Detail -->
+    <div *ngIf="!loading && !error && card" class="card-detail">
+      <!-- Back Button -->
+      <button class="back-btn" (click)="goBack()">
+        <span class="back-icon">←</span> 返回列表
+      </button>
+
+      <!-- Card Header -->
+      <div class="card-header">
+        <h1 class="card-title">{{ card.name_zh }}</h1>
+        <div class="card-meta">
+          <span class="card-type-badge">{{ getCardTypeText(card.card_type) }}</span>
+          <span class="card-number">No. {{ card.number }}</span>
+          <span *ngIf="card.suit" class="card-suit">{{ card.suit.name_zh }}</span>
+        </div>
+      </div>
+
+      <!-- Card Content -->
+      <div class="card-content">
+        <!-- Left: Image -->
+        <div class="card-image-container">
+          <img [src]="getCardImage(card.id)" [alt]="card.name" class="card-image">
+        </div>
+
+        <!-- Right: Details -->
+        <div class="card-info">
+          <!-- Suit Info (for minor cards) -->
+          <div *ngIf="card.suit && card.suit.id" class="info-section suit-section">
+            <h3 class="section-title">花色資訊</h3>
+            <div class="suit-info">
+              <p><strong>花色：</strong>{{ card.suit.name_zh || '無' }}</p>
+              <p><strong>元素：</strong>{{ card.suit.element || '無' }}</p>
+            </div>
+          </div>
+
+          <!-- Upright Meaning -->
+          <div class="info-section">
+            <h3 class="section-title upright-title">正位牌義</h3>
+            <div class="meaning-content">
+              <div class="meaning-item">
+                <h4>官方牌義</h4>
+                <p>{{ card.official_meaning.upright }}</p>
+              </div>
+              <div class="meaning-item" *ngIf="card.self_definition.upright">
+                <h4>個人牌義</h4>
+                <p>{{ card.self_definition.upright }}</p>
+              </div>
+              <!-- Upright Tags -->
+              <div class="tags-group" *ngIf="uprightTags.length > 0">
+                <div class="tags-header">
+                  <h4>標籤</h4>
+                  <button class="edit-tags-btn" (click)="openTagEditor('upright')">編輯標籤</button>
+                </div>
+                <div class="tags-container">
+                  <span *ngFor="let tag of uprightTags; let i = index"
+                        class="tag"
+                        [ngClass]="[getTagColorClass(i), tag.is_default ? '' : 'tag-custom']">
+                    {{ tag.name_zh }}
+                  </span>
+                </div>
+              </div>
+              <div *ngIf="uprightTags.length === 0" class="tags-group">
+                <div class="tags-header">
+                  <h4>標籤</h4>
+                  <button class="edit-tags-btn" (click)="openTagEditor('upright')">編輯標籤</button>
+                </div>
+                <p class="no-tags">尚無標籤</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Reversed Meaning -->
+          <div class="info-section">
+            <h3 class="section-title reversed-title">逆位牌義</h3>
+            <div class="meaning-content">
+              <div class="meaning-item">
+                <h4>官方牌義</h4>
+                <p>{{ card.official_meaning.reversed }}</p>
+              </div>
+              <div class="meaning-item" *ngIf="card.self_definition.reversed">
+                <h4>個人牌義</h4>
+                <p>{{ card.self_definition.reversed }}</p>
+              </div>
+              <!-- Reversed Tags -->
+              <div class="tags-group" *ngIf="reversedTags.length > 0">
+                <div class="tags-header">
+                  <h4>標籤</h4>
+                  <button class="edit-tags-btn" (click)="openTagEditor('reversed')">編輯標籤</button>
+                </div>
+                <div class="tags-container">
+                  <span *ngFor="let tag of reversedTags; let i = index"
+                        class="tag"
+                        [ngClass]="[getTagColorClass(i), tag.is_default ? '' : 'tag-custom']">
+                    {{ tag.name_zh }}
+                  </span>
+                </div>
+              </div>
+              <div *ngIf="reversedTags.length === 0" class="tags-group">
+                <div class="tags-header">
+                  <h4>標籤</h4>
+                  <button class="edit-tags-btn" (click)="openTagEditor('reversed')">編輯標籤</button>
+                </div>
+                <p class="no-tags">尚無標籤</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Tag Edit Modal -->
+<div class="modal-overlay" *ngIf="showTagModal" (click)="closeTagEditor()">
+  <div class="modal-dialog" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>編輯{{ positionLabel }}標籤</h3>
+      <button class="modal-close-btn" (click)="closeTagEditor()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Current Tags -->
+      <div class="modal-tags-section">
+        <h4>目前標籤</h4>
+        <div class="modal-tags-container" *ngIf="currentPositionTags.length > 0">
+          <span *ngFor="let tag of currentPositionTags; let i = index"
+                class="modal-tag"
+                [ngClass]="tag.is_default ? 'modal-tag-default' : 'modal-tag-custom'">
+            {{ tag.name_zh }}
+            <span class="tag-type-label">{{ tag.is_default ? '預設' : '自訂' }}</span>
+            <button class="tag-remove-btn" (click)="removeTag(tag)" [disabled]="tagLoading">×</button>
+          </span>
+        </div>
+        <p *ngIf="currentPositionTags.length === 0" class="no-tags">尚無標籤</p>
+      </div>
+
+      <!-- Add New Tag -->
+      <div class="modal-add-section">
+        <h4>新增標籤</h4>
+        <div class="add-tag-form">
+          <input type="text"
+                 [(ngModel)]="newTagName"
+                 placeholder="輸入標籤名稱（中文）"
+                 class="tag-input"
+                 (keyup.enter)="addTag()"
+                 [disabled]="tagLoading">
+          <button class="add-tag-btn" (click)="addTag()" [disabled]="tagLoading || !newTagName.trim()">
+            新增
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="reset-btn" (click)="confirmResetTags()" [disabled]="tagLoading">
+        重設為預設標籤
+      </button>
+      <button class="close-btn" (click)="closeTagEditor()">關閉</button>
+    </div>
+  </div>
+</div>
+
+<!-- Reset Confirm Modal -->
+<div class="modal-overlay confirm-overlay" *ngIf="showResetConfirm" (click)="cancelReset()">
+  <div class="confirm-dialog" (click)="$event.stopPropagation()">
+    <div class="confirm-header">
+      <h3>確認重設</h3>
+    </div>
+    <div class="confirm-body">
+      <p>確定要重設為預設標籤嗎？此操作將刪除所有自訂標籤並恢復預設設定。</p>
+    </div>
+    <div class="confirm-footer">
+      <button class="confirm-cancel-btn" (click)="cancelReset()">取消</button>
+      <button class="confirm-ok-btn" (click)="resetTags()">確定重設</button>
+    </div>
+  </div>
+</div>
