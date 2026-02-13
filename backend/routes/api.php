@@ -47,6 +47,7 @@ Route::prefix('spread-readings')->group(function () {
     Route::post('/', [SpreadReadingController::class, 'store']);
     Route::get('/{id}', [SpreadReadingController::class, 'show']);
     Route::post('/{id}/cards', [SpreadReadingController::class, 'addCard']);
+    Route::post('/{id}/cards/positions/{position}/tags', [SpreadReadingController::class, 'toggleTag']);
 });
 
 

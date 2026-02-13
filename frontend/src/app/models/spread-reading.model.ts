@@ -2,8 +2,10 @@ import { TarotCard } from './tarot-card.model';
 
 export interface SpreadCardItem {
   position_number: number;
+  spread_card_id?: number;
   card_id: number;
   is_reversed: boolean;
+  selected_tag_ids?: number[];
   card: TarotCard;
 }
 

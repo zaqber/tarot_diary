@@ -239,6 +239,16 @@
   filter: brightness(0.9);
 }
 
+.tag-clickable {
+  cursor: pointer;
+  border: none;
+  font: inherit;
+}
+
+.tag-clickable:hover {
+  filter: brightness(1.1);
+}
+
 .tag-none {
   font-size: 0.8rem;
   color: #999;

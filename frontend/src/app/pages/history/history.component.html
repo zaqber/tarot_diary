@@ -18,6 +18,14 @@
         class="history-item"
       >
         <span class="history-date">{{ formatDate(item.reading_date) }}</span>
+        <div class="history-card-images">
+          <img
+            *ngFor="let sc of getOrderedCards(item.spread_cards)"
+            [src]="getCardImagePath(sc.card_id)"
+            [alt]="sc.card?.name_zh || sc.card?.name"
+            class="history-card-img"
+          />
+        </div>
         <span class="history-cards">{{ getCardNames(item) }}</span>
         <span class="history-link">查看 →</span>
       </a>

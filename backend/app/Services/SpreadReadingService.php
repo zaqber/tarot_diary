@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Http\Resources\TarotCardResource;
 use App\Models\SpreadCard;
+use App\Models\SpreadCardTagSelection;
 use App\Models\SpreadReading;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -80,7 +81,7 @@ class SpreadReadingService
     public function getReadingByDate(int $userId, string $date, Request $request): ?array
     {
         $dateStr = ($date === 'today' || $date === '') ? now()->toDateString() : $date;
-        $reading = SpreadReading::with(['spreadType', 'spreadCards.card.suit', 'spreadCards.card.tags'])
+        $reading = SpreadReading::with(['spreadType', 'spreadCards.tagSelections', 'spreadCards.card.suit', 'spreadCards.card.tags'])
             ->where('user_id', $userId)
             ->where('spread_type_id', self::THREE_CARD_SPREAD_TYPE_ID)
             ->whereDate('reading_date', $dateStr)
@@ -118,10 +119,42 @@ class SpreadReadingService
      */
     public function getReadingWithCards(int $id, Request $request): array
     {
-        $reading = SpreadReading::with(['spreadType', 'spreadCards.card.suit', 'spreadCards.card.tags'])
+        $reading = SpreadReading::with(['spreadType', 'spreadCards.tagSelections', 'spreadCards.card.suit', 'spreadCards.card.tags'])
             ->findOrFail($id);
 
         return $this->formatReadingWithCards($reading, $request);
+    }
+
+    /**
+     * 切換「符合當天狀態」的標籤（點選後紀錄）
+     *
+     * @param int $spreadReadingId
+     * @param int $positionNumber 1, 2, 3
+     * @param int $tagId
+     * @return array ['selected' => bool, 'selected_tag_ids' => int[]]
+     */
+    public function toggleSpreadCardTag(int $spreadReadingId, int $positionNumber, int $tagId): array
+    {
+        $spreadCard = SpreadCard::where('spread_reading_id', $spreadReadingId)
+            ->where('position_number', $positionNumber)
+            ->firstOrFail();
+        $existing = SpreadCardTagSelection::where('spread_card_id', $spreadCard->id)
+            ->where('tag_id', $tagId)
+            ->first();
+        if ($existing) {
+            $existing->delete();
+            $selected = false;
+        } else {
+            SpreadCardTagSelection::create([
+                'spread_card_id' => $spreadCard->id,
+                'tag_id' => $tagId,
+            ]);
+            $selected = true;
+        }
+        $selectedTagIds = SpreadCardTagSelection::where('spread_card_id', $spreadCard->id)
+            ->pluck('tag_id')
+            ->toArray();
+        return ['selected' => $selected, 'selected_tag_ids' => $selectedTagIds];
     }
 
     /**
@@ -137,10 +170,13 @@ class SpreadReadingService
                 $card->loadMissing(['tags']);
             }
             $resource = new TarotCardResource($card);
+            $selectedTagIds = $sc->tagSelections ? $sc->tagSelections->pluck('tag_id')->toArray() : [];
             return [
                 'position_number' => $sc->position_number,
+                'spread_card_id' => $sc->id,
                 'card_id' => $sc->card_id,
                 'is_reversed' => $sc->is_reversed,
+                'selected_tag_ids' => $selectedTagIds,
                 'card' => $resource->toArray($request),
             ];
         })->toArray();

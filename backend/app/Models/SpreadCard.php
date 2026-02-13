@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SpreadCard extends Model
 {
@@ -30,5 +31,10 @@ class SpreadCard extends Model
     public function card(): BelongsTo
     {
         return $this->belongsTo(TarotCard::class, 'card_id');
+    }
+
+    public function tagSelections(): HasMany
+    {
+        return $this->hasMany(SpreadCardTagSelection::class);
     }
 }

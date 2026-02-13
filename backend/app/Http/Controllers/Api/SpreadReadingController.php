@@ -117,7 +117,25 @@ class SpreadReadingController extends Controller
     }
 
     /**
-     * 取得牌陣詳情（含每張牌名稱、tags，三張都抽完後顯示 About My Day 用）
+     * 切換「符合當天狀態」的標籤（點選後紀錄）
+     *
+     * @param Request $request
+     * @param int $id spread_reading_id
+     * @param int $position 1, 2, 3
+     * @return JsonResponse
+     */
+    public function toggleTag(Request $request, int $id, int $position): JsonResponse
+    {
+        $request->validate(['tag_id' => 'required|integer|exists:tags,id']);
+        if ($position < 1 || $position > 3) {
+            return $this->errorResponse('position 須為 1、2 或 3', 422);
+        }
+        $result = $this->service->toggleSpreadCardTag($id, $position, (int) $request->input('tag_id'));
+        return $this->successResponse($result, '已更新標籤狀態');
+    }
+
+    /**
+     * 取得牌陣詳情（含每張牌名稱、tags、selected_tag_ids，三張都抽完後顯示 About My Day 用）
      *
      * @param Request $request
      * @param int $id

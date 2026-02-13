@@ -10,6 +10,8 @@ import { Suit } from '../../services/suit.service';
 interface SlotCard {
   position_number: number;
   card: TarotCard | null;
+  /** 符合當天狀態的 tag id 列表（點選後由後端紀錄） */
+  selectedTagIds: number[];
 }
 
 @Component({
@@ -20,9 +22,9 @@ interface SlotCard {
 export class NewSpreadComponent implements OnInit {
   readingId: number | null = null;
   slots: SlotCard[] = [
-    { position_number: 1, card: null },
-    { position_number: 2, card: null },
-    { position_number: 3, card: null }
+    { position_number: 1, card: null, selectedTagIds: [] },
+    { position_number: 2, card: null, selectedTagIds: [] },
+    { position_number: 3, card: null, selectedTagIds: [] }
   ];
   readingDetail: SpreadReadingDetail | null = null;
 
@@ -78,7 +80,8 @@ export class NewSpreadComponent implements OnInit {
       const sc = detail.spread_cards?.find(c => c.position_number === pos);
       return {
         position_number: pos,
-        card: sc?.card ?? null
+        card: sc?.card ?? null,
+        selectedTagIds: sc?.selected_tag_ids ?? []
       };
     });
   }
@@ -265,13 +268,31 @@ export class NewSpreadComponent implements OnInit {
       || this.tarotCardService.getCardImagePath(card.id);
   }
 
-  getActiveTags(card: TarotCard): Array<{ name_zh: string; color?: string | null }> {
+  getActiveTags(card: TarotCard): Array<{ id: number; name_zh: string; color?: string | null }> {
     if (!card?.tags) return [];
     const t = card.tags as { active?: unknown[]; default?: unknown[] };
     const list = (t.active && t.active.length > 0 ? t.active : t.default) ?? [];
     return (Array.isArray(list) ? list : []).map((item: Record<string, unknown>) => ({
+      id: (item.id as number) ?? 0,
       name_zh: (item.name_zh as string) || (item.name as string) || '',
       color: (item.color as string) ?? null
-    })).filter(tag => tag.name_zh);
+    })).filter(tag => tag.name_zh && tag.id);
+  }
+
+  isTagSelected(slot: SlotCard, tagId: number): boolean {
+    return (slot.selectedTagIds || []).indexOf(tagId) !== -1;
+  }
+
+  toggleTag(slot: SlotCard, tagId: number): void {
+    if (this.readingId == null) return;
+    this.spreadService.toggleSpreadCardTag(this.readingId, slot.position_number, tagId).subscribe({
+      next: (res: any) => {
+        const data = res.data ?? res;
+        slot.selectedTagIds = data.selected_tag_ids ?? slot.selectedTagIds;
+      },
+      error: () => {
+        this.errorMessage = '更新標籤狀態失敗';
+      }
+    });
   }
 }

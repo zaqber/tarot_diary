@@ -68,6 +68,16 @@ export class SpreadService {
       params: params ?? {}
     });
   }
+
+  /**
+   * 切換「符合當天狀態」的標籤（點選後紀錄）
+   */
+  toggleSpreadCardTag(readingId: number, position: number, tagId: number): Observable<{ data: { selected: boolean; selected_tag_ids: number[] } }> {
+    return this.http.post<{ data: { selected: boolean; selected_tag_ids: number[] } }>(
+      `${this.apiUrl}/${readingId}/cards/positions/${position}/tags`,
+      { tag_id: tagId }
+    );
+  }
 }
 
 export interface SpreadReadingListItem {

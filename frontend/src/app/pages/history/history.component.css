@@ -139,6 +139,20 @@
   width: 110px;
 }
 
+.history-card-images {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.history-card-img {
+  width: 48px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 6px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+}
+
 .history-cards {
   flex: 1;
   font-size: 0.95rem;

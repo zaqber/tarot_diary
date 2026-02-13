@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { SpreadService, SpreadReadingListItem } from '../../services/spread.service';
+import { TarotCardService } from '../../services/tarot-card.service';
 
 @Component({
   selector: 'app-history',
@@ -11,7 +12,10 @@ export class HistoryComponent implements OnInit {
   loading = true;
   errorMessage = '';
 
-  constructor(private spreadService: SpreadService) {}
+  constructor(
+    private spreadService: SpreadService,
+    private tarotCardService: TarotCardService
+  ) {}
 
   ngOnInit(): void {
     this.loadList();
@@ -43,5 +47,14 @@ export class HistoryComponent implements OnInit {
     if (!dateStr) return '—';
     const d = new Date(dateStr);
     return isNaN(d.getTime()) ? dateStr : `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  getOrderedCards(spreadCards: SpreadReadingListItem['spread_cards']): Array<{ card_id: number; card: { id: number; name: string; name_zh: string } | null }> {
+    if (!spreadCards?.length) return [];
+    return [...spreadCards].sort((a, b) => a.position_number - b.position_number);
+  }
+
+  getCardImagePath(cardId: number): string {
+    return this.tarotCardService.getCardImagePath(cardId);
   }
 }

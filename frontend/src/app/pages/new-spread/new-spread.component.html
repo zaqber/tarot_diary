@@ -82,11 +82,13 @@
         <div class="card-info">
           <h4 class="card-title">{{ slot.card?.name || slot.card?.name_zh || '—' }}</h4>
           <div class="tag-group tag-group-bottom">
-            <span
+            <button
               *ngFor="let tag of slot.card ? getActiveTags(slot.card) : []"
-              class="tag"
-              [style.background-color]="tag.color || '#666'"
-            >{{ tag.name_zh }}</span>
+              type="button"
+              class="tag tag-clickable"
+              [style.background-color]="isTagSelected(slot, tag.id) ? (tag.color || '#666') : '#555'"
+              (click)="toggleTag(slot, tag.id)"
+            >{{ tag.name_zh }}</button>
             <span *ngIf="slot.card && getActiveTags(slot.card).length === 0" class="tag-none">尚無標籤</span>
           </div>
         </div>
