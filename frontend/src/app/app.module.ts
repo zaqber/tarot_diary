@@ -13,6 +13,7 @@ import { HistoryComponent } from './pages/history/history.component';
 import { AnalysisComponent } from './pages/analysis/analysis.component';
 import { TarotCardMgmtComponent } from './pages/tarot-card-mgmt/tarot-card-mgmt.component';
 import { DetailComponent } from './pages/detail/detail.component';
+import { ReadingDetailComponent } from './pages/reading-detail/reading-detail.component';
 
 @NgModule({
   declarations: [
@@ -22,6 +23,7 @@ import { DetailComponent } from './pages/detail/detail.component';
     HomeComponent,
     NewSpreadComponent,
     HistoryComponent,
+    ReadingDetailComponent,
     AnalysisComponent,
     TarotCardMgmtComponent,
     DetailComponent

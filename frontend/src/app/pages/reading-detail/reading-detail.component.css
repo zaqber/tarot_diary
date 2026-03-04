@@ -1,0 +1,145 @@
+.reading-detail-section {
+  background: linear-gradient(to right, #c5c9f9, #fee7ef);
+  padding: 80px 20px;
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.loading-msg,
+.error-msg {
+  text-align: center;
+  margin: 20px 0;
+  color: #666;
+}
+
+.error-msg {
+  color: #c00;
+}
+
+.detail-header {
+  margin-bottom: 24px;
+  position: relative;
+}
+
+.page-date {
+  font-size: 1rem;
+  color: #029fe7;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+}
+
+.section-title {
+  font-size: 2.25rem;
+  color: #4a4a4a;
+  margin: 0 0 16px 0;
+}
+
+.back-btn {
+  background: #fff;
+  color: #4a4a4a;
+  padding: 10px 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.back-btn:hover {
+  background: #f5f5f5;
+  border-color: #029fe7;
+  color: #029fe7;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 50px;
+  margin-top: 24px;
+}
+
+.card {
+  background-size: cover;
+  background-position: center;
+  border-radius: 20px;
+  height: 400px;
+  box-shadow: 2px 2px 8px rgba(128, 128, 128, 0.5);
+}
+
+.card.card-reversed {
+  transform: rotate(180deg);
+}
+
+.card-wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-info {
+  text-align: center;
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.card-title {
+  color: #4a4a4a;
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.tag-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 15px;
+}
+
+.tag-group.tag-group-bottom {
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+.tag {
+  background: #666;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+}
+
+.tag-clickable:hover {
+  filter: brightness(1.1);
+}
+
+.tag-none {
+  font-size: 0.8rem;
+  color: #999;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .reading-detail-section {
+    padding: 60px 15px;
+  }
+
+  .card-grid {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .card {
+    height: 350px;
+  }
+}

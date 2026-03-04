@@ -6,12 +6,14 @@ import { HistoryComponent } from './pages/history/history.component';
 import { AnalysisComponent } from './pages/analysis/analysis.component';
 import { TarotCardMgmtComponent } from './pages/tarot-card-mgmt/tarot-card-mgmt.component';
 import { DetailComponent } from './pages/detail/detail.component';
+import { ReadingDetailComponent } from './pages/reading-detail/reading-detail.component';
 
 const routes: Routes = [
   { path: '', component: HomeComponent },
   { path: 'home', component: HomeComponent },
   { path: 'new_spread', component: NewSpreadComponent },
   { path: 'history', component: HistoryComponent },
+  { path: 'reading/:id', component: ReadingDetailComponent },
   { path: 'analysis', component: AnalysisComponent },
   { path: 'tarot_card_mgmt', component: TarotCardMgmtComponent },
   { path: 'detail/:id', component: DetailComponent },
