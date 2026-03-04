@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { SpreadService, SpreadReadingListItem } from '../../services/spread.service';
 import { TarotCardService } from '../../services/tarot-card.service';
-import { getTodayDateStringInTaipei, formatDateDisplay } from '../../utils/date.util';
+import { getTodayDateStringInTaipei, formatDateDisplay } from '../../services/date.util';
 
 @Component({
   selector: 'app-history',
@@ -64,7 +64,7 @@ export class HistoryComponent implements OnInit {
     return formatDateDisplay(dateStr);
   }
 
-  getOrderedCards(spreadCards: SpreadReadingListItem['spread_cards']): Array<{ card_id: number; card: { id: number; name: string; name_zh: string } | null }> {
+  getOrderedCards(spreadCards: SpreadReadingListItem['spread_cards']): Array<{ card_id: number; is_reversed?: boolean; card: { id: number; name: string; name_zh: string } | null }> {
     if (!spreadCards?.length) return [];
     return [...spreadCards].sort((a, b) => a.position_number - b.position_number);
   }
