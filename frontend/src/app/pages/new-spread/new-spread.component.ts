@@ -6,7 +6,7 @@ import { SuitService } from '../../services/suit.service';
 import { TarotCard } from '../../models/tarot-card.model';
 import { SpreadReadingDetail } from '../../models/spread-reading.model';
 import { Suit } from '../../services/suit.service';
-import { getTodayDateStringInTaipei } from '../../utils/date.util';
+import { getTodayDateStringInTaipei } from '../../services/date.util';
 
 interface SlotCard {
   position_number: number;
@@ -313,6 +313,24 @@ export class NewSpreadComponent implements OnInit {
 
   isTagSelected(slot: SlotCard, tagId: number): boolean {
     return (slot.selectedTagIds || []).indexOf(tagId) !== -1;
+  }
+
+  /** 同一牌陣中出現超過一張牌的關鍵字（name_zh），這些標籤顯示黃褐色 */
+  getRepeatedTagNames(): Set<string> {
+    const countByName = new Map<string, number>();
+    this.slots.forEach(slot => {
+      if (!slot.card) return;
+      this.getActiveTags(slot.card).forEach(tag => {
+        const name = (tag.name_zh || '').trim();
+        if (!name) return;
+        countByName.set(name, (countByName.get(name) ?? 0) + 1);
+      });
+    });
+    const repeated = new Set<string>();
+    countByName.forEach((count, name) => {
+      if (count > 1) repeated.add(name);
+    });
+    return repeated;
   }
 
   toggleTag(slot: SlotCard, tagId: number): void {

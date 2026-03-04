@@ -107,7 +107,7 @@
               *ngFor="let tag of slot.card ? getActiveTags(slot.card) : []"
               type="button"
               class="tag tag-clickable"
-              [style.background-color]="isTagSelected(slot, tag.id) ? (tag.color || '#666') : '#555'"
+              [style.background-color]="getRepeatedTagNames().has(tag.name_zh) ? (tag.color || '#C4A574') : '#555'"
               (click)="toggleTag(slot, tag.id)"
             >{{ tag.name_zh }}</button>
             <span *ngIf="slot.card && getActiveTags(slot.card).length === 0" class="tag-none">尚無標籤</span>
