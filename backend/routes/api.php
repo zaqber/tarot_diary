@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AnalysisController;
 use App\Http\Controllers\Api\SpreadReadingController;
 use App\Http\Controllers\Api\SuitController;
 use App\Http\Controllers\Api\TagController;
@@ -48,6 +49,10 @@ Route::prefix('spread-readings')->group(function () {
     Route::get('/{id}', [SpreadReadingController::class, 'show']);
     Route::post('/{id}/cards', [SpreadReadingController::class, 'addCard']);
     Route::post('/{id}/cards/positions/{position}/tags', [SpreadReadingController::class, 'toggleTag']);
+});
+
+Route::prefix('analysis')->group(function () {
+    Route::get('/top-keywords', [AnalysisController::class, 'topKeywords']);
 });
 
 

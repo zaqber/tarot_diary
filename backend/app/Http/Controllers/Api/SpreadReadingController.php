@@ -93,6 +93,7 @@ class SpreadReadingController extends Controller
                     return [
                         'position_number' => $sc->position_number,
                         'card_id' => $sc->card_id,
+                        'is_reversed' => (bool) $sc->is_reversed,
                         'card' => $sc->card ? [
                             'id' => $sc->card->id,
                             'name' => $sc->card->name,
