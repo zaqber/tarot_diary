@@ -2,24 +2,29 @@
 <section class="section-1">
   <div class="container">
     <div class="info-box">
-      <h2 class="section-title">TOP3 KEYWORDs<br>Rank of the past 30 days</h2>
+      <h2 class="section-title">TOP3 KEYWORDs<br>Rank of the past {{ topKeywordsDays }} days</h2>
       <p class="section-description">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+        過去 {{ topKeywordsDays }} 天抽牌中，出現次數最多的前 3 個關鍵字。
       </p>
 
-      <!-- Ranking Chart -->
-      <div class="ranking-chart">
-        <div class="rank-item">
-          <div class="rank-bar rank-2">2</div>
-          <h3 class="rank-label">突破</h3>
-        </div>
-        <div class="rank-item">
-          <div class="rank-bar rank-1">1</div>
-          <h3 class="rank-label">突破</h3>
-        </div>
-        <div class="rank-item">
-          <div class="rank-bar rank-3">3</div>
-          <h3 class="rank-label">突破</h3>
+      <p *ngIf="loading" class="loading-msg">載入中…</p>
+      <p *ngIf="errorMessage" class="error-msg">{{ errorMessage }}</p>
+
+      <!-- Ranking Chart：左=第2名、中=第1名、右=第3名；同次數關鍵字並排 -->
+      <div class="ranking-chart" *ngIf="!loading && !errorMessage">
+        <div *ngIf="displaySlots.length === 0" class="empty-msg">尚無資料，多抽幾天牌後再來看吧。</div>
+        <div *ngFor="let slot of displaySlots" class="rank-item">
+          <div class="rank-bar-wrap">
+            <div
+              class="rank-bar"
+              [ngClass]="getRankClass(slot.rank)"
+              [style.background-color]="getGroupColor(slot.group)"
+            >
+              {{ slot.rank }}
+            </div>
+          </div>
+          <h3 class="rank-label">{{ getGroupLabel(slot.group) }}</h3>
+          <span class="rank-count">出現 {{ getGroupCount(slot.group) }} 次</span>
         </div>
       </div>
     </div>
