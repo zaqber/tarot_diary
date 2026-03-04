@@ -33,6 +33,17 @@ backend/.vscode
 # ===========================
 # Frontend (Angular)
 # ===========================
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/.nx/
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/lerna-debug.log*
 frontend/tarot-angular/node_modules/
 frontend/tarot-angular/dist/
 frontend/tarot-angular/.angular/
