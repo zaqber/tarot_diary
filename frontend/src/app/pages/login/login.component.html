@@ -1,0 +1,65 @@
+<div class="login-page">
+  <div class="login-card">
+    <h1 class="title">Tarot Diary</h1>
+    <p class="subtitle">{{ mode === 'login' ? '登入' : '註冊' }}您的帳號</p>
+
+    <div class="tabs">
+      <button type="button" [class.active]="mode === 'login'" (click)="switchMode('login')">登入</button>
+      <button type="button" [class.active]="mode === 'register'" (click)="switchMode('register')">註冊</button>
+    </div>
+
+    <p class="error-msg" *ngIf="error">{{ error }}</p>
+
+    <!-- 登入表單 -->
+    <form *ngIf="mode === 'login'" (ngSubmit)="onSubmitLogin()" class="form">
+      <label>
+        <span>Email</span>
+        <input type="email" [(ngModel)]="loginForm.email" name="email" required placeholder="your@email.com">
+      </label>
+      <label>
+        <span>密碼</span>
+        <input type="password" [(ngModel)]="loginForm.password" name="password" required>
+      </label>
+      <button type="submit" class="btn-primary" [disabled]="loading">
+        {{ loading ? '登入中...' : '登入' }}
+      </button>
+    </form>
+
+    <!-- 註冊表單 -->
+    <form *ngIf="mode === 'register'" (ngSubmit)="onSubmitRegister()" class="form">
+      <label>
+        <span>使用者名稱</span>
+        <input type="text" [(ngModel)]="registerForm.username" name="username" required maxlength="50" placeholder="username">
+      </label>
+      <label>
+        <span>Email</span>
+        <input type="email" [(ngModel)]="registerForm.email" name="email" required placeholder="your@email.com">
+      </label>
+      <label>
+        <span>顯示名稱（選填）</span>
+        <input type="text" [(ngModel)]="registerForm.display_name" name="display_name" maxlength="100" placeholder="顯示名稱">
+      </label>
+      <label>
+        <span>密碼（至少 8 碼）</span>
+        <input type="password" [(ngModel)]="registerForm.password" name="password" required minlength="8">
+      </label>
+      <label>
+        <span>確認密碼</span>
+        <input type="password" [(ngModel)]="registerForm.password_confirmation" name="password_confirmation" required>
+      </label>
+      <button type="submit" class="btn-primary" [disabled]="loading">
+        {{ loading ? '註冊中...' : '註冊' }}
+      </button>
+    </form>
+
+    <div class="divider">
+      <span>或</span>
+    </div>
+
+    <button type="button" class="btn-google" (click)="loginWithGoogle()" [disabled]="loading">
+      使用 Google 登入
+    </button>
+
+    <a routerLink="/" class="back-link">返回首頁</a>
+  </div>
+</div>

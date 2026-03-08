@@ -1,0 +1,136 @@
+.login-page {
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: linear-gradient(0deg, rgba(255,255,255,0.4), rgba(255,255,255,0.4)), url('/assets/images/bg-min.jpg') 50% 50% / cover;
+}
+
+.login-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+  padding: 2.5rem;
+  max-width: 400px;
+  width: 100%;
+}
+
+.title {
+  font-size: 1.75rem;
+  color: #478ac9;
+  margin: 0 0 0.25rem;
+  font-weight: 700;
+}
+
+.subtitle {
+  color: #555;
+  margin: 0 0 1.5rem;
+  font-size: 0.95rem;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.tabs button {
+  flex: 1;
+  padding: 0.6rem 1rem;
+  border: 1px solid #ddd;
+  background: #f8f8f8;
+  cursor: pointer;
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+.tabs button.active {
+  background: #478ac9;
+  color: #fff;
+  border-color: #478ac9;
+}
+
+.error-msg {
+  color: #c00;
+  font-size: 0.9rem;
+  margin: 0 0 1rem;
+}
+
+.form label {
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.form label span {
+  display: block;
+  font-size: 0.9rem;
+  color: #333;
+  margin-bottom: 0.35rem;
+}
+
+.form input {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.form .btn-primary {
+  width: 100%;
+  padding: 0.75rem;
+  background: #478ac9;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 0.5rem;
+}
+
+.form .btn-primary:hover:not(:disabled) {
+  background: #3a7ab8;
+}
+
+.form .btn-primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.divider {
+  text-align: center;
+  margin: 1.5rem 0 1rem;
+  color: #888;
+  font-size: 0.9rem;
+}
+
+.btn-google {
+  width: 100%;
+  padding: 0.75rem;
+  background: #fff;
+  color: #333;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.btn-google:hover:not(:disabled) {
+  background: #f5f5f5;
+}
+
+.btn-google:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.back-link {
+  display: block;
+  text-align: center;
+  margin-top: 1.5rem;
+  color: #478ac9;
+  font-size: 0.9rem;
+}
