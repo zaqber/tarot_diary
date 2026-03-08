@@ -64,8 +64,8 @@ jobs:
       - name: Build backend image
         uses: docker/build-push-action@v6
         with:
-          context: ./backend
-          file: ./backend/Dockerfile
+          context: ${{ github.workspace }}/backend
+          file: ${{ github.workspace }}/backend/Dockerfile
           push: false
           load: true
           tags: ${{ env.IMAGE_BACKEND }}:latest
@@ -84,8 +84,8 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: docker/build-push-action@v6
         with:
-          context: ./backend
-          file: ./backend/Dockerfile
+          context: ${{ github.workspace }}/backend
+          file: ${{ github.workspace }}/backend/Dockerfile
           push: true
           tags: |
             ${{ env.IMAGE_BACKEND }}:latest
@@ -123,8 +123,8 @@ jobs:
       - name: Build frontend image
         uses: docker/build-push-action@v6
         with:
-          context: ./frontend
-          file: ./frontend/Dockerfile
+          context: ${{ github.workspace }}/frontend
+          file: ${{ github.workspace }}/frontend/Dockerfile
           push: false
           load: true
           tags: ${{ env.IMAGE_FRONTEND }}:latest
@@ -143,8 +143,8 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: docker/build-push-action@v6
         with:
-          context: ./frontend
-          file: ./frontend/Dockerfile
+          context: ${{ github.workspace }}/frontend
+          file: ${{ github.workspace }}/frontend/Dockerfile
           push: true
           tags: |
             ${{ env.IMAGE_FRONTEND }}:latest
