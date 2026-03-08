@@ -20,7 +20,7 @@ class AnalysisController extends Controller
      */
     public function topKeywords(Request $request): JsonResponse
     {
-        $userId = $request->user()?->id ?? 1;
+        $userId = $request->user()->id;
         $days = (int) $request->input('days', 30);
         $days = max(1, min(365, $days));
         $since = now()->subDays($days)->startOfDay();
