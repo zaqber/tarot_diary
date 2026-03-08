@@ -32,25 +32,56 @@
   margin-bottom: 40px;
 }
 
+.loading-msg,
+.error-msg,
+.empty-msg {
+  text-align: center;
+  margin: 20px 0;
+  color: #666;
+}
+
+.error-msg {
+  color: #c00;
+}
+
+.rank-count {
+  font-size: 0.85rem;
+  color: #888;
+  white-space: nowrap;
+}
+
 /* Ranking Chart */
 .ranking-chart {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  gap: 50px;
+  gap: 40px;
   margin: 60px auto;
-  max-width: 600px;
+  max-width: 640px;
 }
 
 .rank-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 15px;
+  gap: 12px;
+  min-width: 0;
+  max-width: 200px;
+  flex: 1 1 0;
+}
+
+/* 固定高度讓三根長條的底對齊在同一水平線 */
+.rank-bar-wrap {
+  height: 203px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
 }
 
 .rank-bar {
   width: 182px;
+  min-width: 182px;
+  flex-shrink: 0;
   background: #999;
   border-radius: 5px;
   display: flex;
@@ -77,9 +108,15 @@
 }
 
 .rank-label {
-  font-size: 1.5rem;
+  font-size: 1.35rem;
   font-weight: 700;
   color: #333;
+  text-align: center;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  line-height: 1.55;
+  width: 100%;
+  min-height: 2.5em;
 }
 
 /* Section 2 - Filter Data */

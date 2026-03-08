@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 
 import { AppRoutingModule } from './app-routing.module';
@@ -13,6 +13,10 @@ import { HistoryComponent } from './pages/history/history.component';
 import { AnalysisComponent } from './pages/analysis/analysis.component';
 import { TarotCardMgmtComponent } from './pages/tarot-card-mgmt/tarot-card-mgmt.component';
 import { DetailComponent } from './pages/detail/detail.component';
+import { ReadingDetailComponent } from './pages/reading-detail/reading-detail.component';
+import { LoginComponent } from './pages/login/login.component';
+import { AuthCallbackComponent } from './pages/auth-callback/auth-callback.component';
+import { AuthInterceptor } from './interceptors/auth.interceptor';
 
 @NgModule({
   declarations: [
@@ -22,9 +26,12 @@ import { DetailComponent } from './pages/detail/detail.component';
     HomeComponent,
     NewSpreadComponent,
     HistoryComponent,
+    ReadingDetailComponent,
     AnalysisComponent,
     TarotCardMgmtComponent,
-    DetailComponent
+    DetailComponent,
+    LoginComponent,
+    AuthCallbackComponent
   ],
   imports: [
     BrowserModule,
@@ -32,7 +39,9 @@ import { DetailComponent } from './pages/detail/detail.component';
     HttpClientModule,
     FormsModule
   ],
-  providers: [],
+  providers: [
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

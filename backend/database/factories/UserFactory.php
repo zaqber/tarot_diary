@@ -11,34 +11,23 @@ use Illuminate\Support\Str;
  */
 class UserFactory extends Factory
 {
-    /**
-     * The current password being used by the factory.
-     */
     protected static ?string $password;
 
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
+        $name = fake()->userName();
         return [
-            'name' => fake()->name(),
+            'username' => Str::limit($name, 50),
             'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
-            'remember_token' => Str::random(10),
+            'password_hash' => static::$password ??= Hash::make('password'),
+            'display_name' => fake()->name(),
+            'timezone' => 'Asia/Taipei',
+            'morning_reminder_time' => '08:00:00',
+            'evening_reminder_time' => '20:00:00',
+            'is_morning_reminder_enabled' => true,
+            'is_evening_reminder_enabled' => true,
+            'last_login' => null,
+            'is_active' => true,
         ];
-    }
-
-    /**
-     * Indicate that the model's email address should be unverified.
-     */
-    public function unverified(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'email_verified_at' => null,
-        ]);
     }
 }

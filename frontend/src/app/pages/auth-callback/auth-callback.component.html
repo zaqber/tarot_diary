@@ -1,0 +1,9 @@
+<div class="callback-page">
+  <div class="callback-box" *ngIf="!error">
+    <p>正在登入...</p>
+  </div>
+  <div class="callback-box error" *ngIf="error">
+    <p>{{ error }}</p>
+    <a routerLink="/login">返回登入頁</a>
+  </div>
+</div>

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { SpreadReadingDetail } from '../models/spread-reading.model';
-import { getTodayDateStringInTaipei } from '../utils/date.util';
+import { getTodayDateStringInTaipei } from './date.util';
 
 export interface CreateSpreadResponse {
   id: number;
@@ -89,6 +89,7 @@ export interface SpreadReadingListItem {
   spread_cards: Array<{
     position_number: number;
     card_id: number;
+    is_reversed?: boolean;
     card: { id: number; name: string; name_zh: string } | null;
   }>;
 }

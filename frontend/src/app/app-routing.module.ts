@@ -6,15 +6,22 @@ import { HistoryComponent } from './pages/history/history.component';
 import { AnalysisComponent } from './pages/analysis/analysis.component';
 import { TarotCardMgmtComponent } from './pages/tarot-card-mgmt/tarot-card-mgmt.component';
 import { DetailComponent } from './pages/detail/detail.component';
+import { ReadingDetailComponent } from './pages/reading-detail/reading-detail.component';
+import { LoginComponent } from './pages/login/login.component';
+import { AuthCallbackComponent } from './pages/auth-callback/auth-callback.component';
+import { AuthGuard } from './guards/auth.guard';
 
 const routes: Routes = [
   { path: '', component: HomeComponent },
   { path: 'home', component: HomeComponent },
-  { path: 'new_spread', component: NewSpreadComponent },
-  { path: 'history', component: HistoryComponent },
-  { path: 'analysis', component: AnalysisComponent },
-  { path: 'tarot_card_mgmt', component: TarotCardMgmtComponent },
-  { path: 'detail/:id', component: DetailComponent },
+  { path: 'login', component: LoginComponent },
+  { path: 'auth/callback', component: AuthCallbackComponent },
+  { path: 'new_spread', component: NewSpreadComponent, canActivate: [AuthGuard] },
+  { path: 'history', component: HistoryComponent, canActivate: [AuthGuard] },
+  { path: 'reading/:id', component: ReadingDetailComponent, canActivate: [AuthGuard] },
+  { path: 'analysis', component: AnalysisComponent, canActivate: [AuthGuard] },
+  { path: 'tarot_card_mgmt', component: TarotCardMgmtComponent, canActivate: [AuthGuard] },
+  { path: 'detail/:id', component: DetailComponent, canActivate: [AuthGuard] },
   { path: '**', redirectTo: '' }
 ];
 

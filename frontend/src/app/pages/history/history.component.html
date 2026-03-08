@@ -10,12 +10,12 @@
       尚無抽牌紀錄，到 <a routerLink="/new_spread">New Spread</a> 抽今日的牌吧。
     </div>
 
-    <!-- 今日紀錄單獨置頂、卡牌較大 -->
-    <div *ngIf="!loading && todayReading" class="history-today-wrap">
+    <!-- 今天：有紀錄顯示牌陣，沒紀錄顯示前往抽牌 -->
+    <div *ngIf="!loading" class="history-today-wrap">
       <h3 class="history-today-title">今天</h3>
       <a
-        [routerLink]="['/new_spread']"
-        [queryParams]="{ readingId: todayReading.id }"
+        *ngIf="todayReading"
+        [routerLink]="['/reading', todayReading.id]"
         class="history-item history-item-today"
       >
         <span class="history-date">{{ formatDate(todayReading.reading_date) }}</span>
@@ -25,10 +25,19 @@
             [src]="getCardImagePath(sc.card_id)"
             [alt]="sc.card?.name_zh || sc.card?.name"
             class="history-card-img"
+            [class.history-card-img-reversed]="sc.is_reversed"
           />
         </div>
         <span class="history-cards">{{ getCardNames(todayReading) }}</span>
         <span class="history-link">查看 →</span>
+      </a>
+      <a
+        *ngIf="!todayReading"
+        routerLink="/new_spread"
+        class="history-item history-item-today history-item-go-draw"
+      >
+        <span class="history-date">今天還沒抽牌</span>
+        <span class="history-link">前往抽牌 →</span>
       </a>
     </div>
 
@@ -36,8 +45,7 @@
     <div class="history-list" *ngIf="!loading && pastList.length > 0">
       <a
         *ngFor="let item of pastList"
-        [routerLink]="['/new_spread']"
-        [queryParams]="{ readingId: item.id }"
+        [routerLink]="['/reading', item.id]"
         class="history-item"
       >
         <span class="history-date">{{ formatDate(item.reading_date) }}</span>
@@ -47,6 +55,7 @@
             [src]="getCardImagePath(sc.card_id)"
             [alt]="sc.card?.name_zh || sc.card?.name"
             class="history-card-img"
+            [class.history-card-img-reversed]="sc.is_reversed"
           />
         </div>
         <span class="history-cards">{{ getCardNames(item) }}</span>

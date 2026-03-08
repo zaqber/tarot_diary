@@ -1,0 +1,38 @@
+<section class="reading-detail-section">
+  <div class="container">
+    <p *ngIf="loading" class="loading-msg">載入中…</p>
+    <p *ngIf="errorMessage" class="error-msg">{{ errorMessage }}</p>
+
+    <div *ngIf="!loading && !errorMessage && readingDetail">
+      <div class="detail-header">
+        <p class="page-date">{{ displayDate }}</p>
+        <h2 class="section-title">About My Day</h2>
+        <button type="button" class="back-btn" (click)="goBack()">返回</button>
+      </div>
+
+      <div class="card-grid">
+        <div *ngFor="let slot of slots" class="card-wrapper">
+          <div
+            *ngIf="slot.card"
+            class="card"
+            [class.card-reversed]="slot.isReversed"
+            [style.background-image]="'url(' + getCardImageUrl(slot.card, false) + ')'"
+          ></div>
+          <div class="card-info">
+            <h4 class="card-title">{{ slot.card?.name || slot.card?.name_zh || '—' }}{{ slot.isReversed ? '（逆位）' : '' }}</h4>
+            <div class="tag-group tag-group-bottom">
+              <button
+                *ngFor="let tag of slot.card ? getActiveTags(slot.card) : []"
+                type="button"
+                class="tag tag-clickable"
+                [style.background-color]="isTagNameRepeated(tag.name_zh) ? (tag.color || '#666') : '#555'"
+                (click)="toggleTag(slot, tag.id)"
+              >{{ tag.name_zh }}</button>
+              <span *ngIf="slot.card && getActiveTags(slot.card).length === 0" class="tag-none">尚無標籤</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
