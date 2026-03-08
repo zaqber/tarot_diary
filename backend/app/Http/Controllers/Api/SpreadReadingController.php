@@ -21,7 +21,7 @@ class SpreadReadingController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        $userId = $request->user()?->id ?? 1;
+        $userId = $request->user()->id;
         $reading = $this->service->create($userId);
         return $this->successResponse([
             'id' => $reading->id,
@@ -71,7 +71,7 @@ class SpreadReadingController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $userId = $request->user()?->id ?? 1;
+        $userId = $request->user()->id;
         $date = $request->input('date');
 
         if ($date !== null && $date !== '') {
