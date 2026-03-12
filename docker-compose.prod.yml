@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  backend:
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+
+  frontend:
+    ports:
+      - "80:80"
+    # 對外提供 80 port
