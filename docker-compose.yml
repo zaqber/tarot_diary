@@ -1,0 +1,101 @@
+
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: tarot-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: tarot_user
+      POSTGRES_PASSWORD: tarot_pass
+      POSTGRES_DB: tarot_diary
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=zh_TW.UTF-8 --lc-ctype=zh_TW.UTF-8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tarot_user -d tarot_diary"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tarot-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: tarot-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - tarot-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: tarot-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      APP_NAME: "Tarot Diary"
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:8000
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: tarot_diary
+      DB_USERNAME: tarot_user
+      DB_PASSWORD: tarot_pass
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      CACHE_STORE: database
+      SESSION_DRIVER: database
+      QUEUE_CONNECTION: database
+      FRONTEND_URL: http://localhost:4200
+      GOOGLE_REDIRECT_URI: http://localhost:8000/api/auth/google/callback
+    env_file:
+      - ./backend/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - tarot-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: tarot-frontend
+    restart: unless-stopped
+    ports:
+      - "4200:80"
+    environment:
+      BACKEND_URL: http://backend:8000
+    depends_on:
+      - backend
+    networks:
+      - tarot-network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  tarot-network:
+    driver: bridge
