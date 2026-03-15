@@ -219,17 +219,20 @@ jobs:
         env:
           EC2_REPO_DIR: ${{ secrets.EC2_REPO_DIR }}
           ECR_REGISTRY: 636155394566.dkr.ecr.ap-northeast-1.amazonaws.com
+          BRANCH: ${{ github.ref_name }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
-          envs: EC2_REPO_DIR,ECR_REGISTRY
+          envs: EC2_REPO_DIR,ECR_REGISTRY,BRANCH
           script: |
             set -e
             REPO_DIR="${EC2_REPO_DIR:-/home/ubuntu/tarot_diary}"
-            cd "$REPO_DIR" && git pull
-            # EC2 需有 IAM 角色 ECR 讀取權限，或已設定 AWS CLI，才能 pull 私有映像
+            cd "$REPO_DIR"
+            git fetch origin
+            git checkout -B "${BRANCH}" "origin/${BRANCH}"
+            git pull origin "${BRANCH}"
             aws ecr get-login-password --region ap-northeast-1 | docker login --username AWS --password-stdin "${ECR_REGISTRY}"
             docker compose pull
             docker compose up -d
