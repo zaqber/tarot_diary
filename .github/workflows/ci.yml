@@ -230,9 +230,14 @@ jobs:
             set -e
             REPO_DIR="${EC2_REPO_DIR:-/home/ubuntu/tarot_diary}"
             cd "$REPO_DIR"
+            docker system prune -f || true
+            git gc --prune=now || true
             git fetch origin
+            cp backend/.env /tmp/backend.env.bak 2>/dev/null || true
+            git clean -fd
+            git reset --hard "origin/${BRANCH}"
             git checkout -B "${BRANCH}" "origin/${BRANCH}"
-            git pull origin "${BRANCH}"
+            cp /tmp/backend.env.bak backend/.env 2>/dev/null || true
             aws ecr get-login-password --region ap-northeast-1 | docker login --username AWS --password-stdin "${ECR_REGISTRY}"
             docker compose pull
             docker compose up -d
