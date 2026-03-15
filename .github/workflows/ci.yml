@@ -224,7 +224,6 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
-          script_stderr: true
           envs: EC2_REPO_DIR,ECR_REGISTRY
           script: |
             set -e
