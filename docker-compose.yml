@@ -1,10 +1,33 @@
-# EC2 / 生產用：Redis + 後端與前端從 ECR 拉映像，PostgreSQL 使用外部（RDS 或自管）
+# EC2 / 生產用：PostgreSQL + Redis + 後端與前端從 ECR 拉映像
 # AMD64 EC2：docker compose pull && docker compose up -d（映像由 GitHub Actions 建 amd64 推 ECR）
 # 1GB 記憶體：已設 memory 上限，若 OOM 可再調低或加 swap
 
 version: '3.8'
 
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: tarot-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: tarot_user
+      POSTGRES_PASSWORD: tarot_pass
+      POSTGRES_DB: tarot_diary
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=zh_TW.UTF-8 --lc-ctype=zh_TW.UTF-8"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tarot_user -d tarot_diary"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tarot-network
+    deploy:
+      resources:
+        limits:
+          memory: 192M
+
   redis:
     image: redis:7-alpine
     container_name: tarot-redis
@@ -41,6 +64,8 @@ services:
     env_file:
       - ./backend/.env
     depends_on:
+      postgres:
+        condition: service_healthy
       redis:
         condition: service_healthy
     networks:
@@ -48,7 +73,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M
+          memory: 448M
 
   frontend:
     image: 636155394566.dkr.ecr.ap-northeast-1.amazonaws.com/tarot-diary/frontend:latest
@@ -69,6 +94,8 @@ services:
           memory: 128M
 
 volumes:
+  postgres_data:
+    driver: local
   redis_data:
     driver: local
 
