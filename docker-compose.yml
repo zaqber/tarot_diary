@@ -61,8 +61,9 @@ services:
       APP_DEBUG: "false"
       REDIS_HOST: redis
       REDIS_PORT: 6379
-    env_file:
-      - ./backend/.env
+    # 用 volume 掛載 .env，預設為 repo 內；EC2 可設 BACKEND_ENV_PATH=/opt/tarot-diary/backend.env 並把檔案放該處，避免被 git 覆蓋
+    volumes:
+      - ${BACKEND_ENV_PATH:-./backend/.env}:/var/www/html/.env:ro
     depends_on:
       postgres:
         condition: service_healthy
