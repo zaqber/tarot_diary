@@ -1,6 +1,6 @@
-/* Section 1 - History Gallery */
+/* Section 1 - History Gallery（與全站背景統一，半透明疊加）*/
 .section-1 {
-  background: linear-gradient(to right, #fee7ef, #c5c9f9);
+  background: rgba(255, 255, 255, 0.75);
   padding: 80px 20px 80px;
   min-height: 100vh;
 }

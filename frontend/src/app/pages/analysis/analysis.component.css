@@ -1,6 +1,6 @@
-/* Section 1 - Top Keywords */
+/* Section 1 - Top Keywords（與全站背景統一）*/
 .section-1 {
-  background: linear-gradient(to right, #fee7ef, #c5c9f9);
+  background: rgba(255, 255, 255, 0.75);
   padding: 80px 20px;
   min-height: 868px;
 }

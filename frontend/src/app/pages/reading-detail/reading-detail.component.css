@@ -1,5 +1,5 @@
 .reading-detail-section {
-  background: linear-gradient(to right, #c5c9f9, #fee7ef);
+  background: rgba(255, 255, 255, 0.75);
   padding: 80px 20px;
   min-height: 100vh;
 }

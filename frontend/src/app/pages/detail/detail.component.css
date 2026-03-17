@@ -1,5 +1,5 @@
 .detail-section {
-  background: linear-gradient(to right, #fee7ef, #c5c9f9);
+  background: rgba(255, 255, 255, 0.75);
   min-height: calc(100vh - 200px);
   padding: 40px 20px;
 }

@@ -1,6 +1,6 @@
-/* Section 1 */
+/* Section 1（與全站背景統一）*/
 .section-1 {
-  background: linear-gradient(to right, #c5c9f9, #fee7ef);
+  background: rgba(255, 255, 255, 0.75);
   padding: 80px 20px;
 }
 
