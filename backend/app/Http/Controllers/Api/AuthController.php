@@ -101,13 +101,43 @@ class AuthController extends Controller
     }
 
     /**
+     * 除錯用：查看目前 Google OAuth 設定（僅 APP_DEBUG=true 時可用）
+     *
+     * GET /api/auth/google/debug
+     */
+    public function googleConfigDebug(Request $request): JsonResponse
+    {
+        if (!config('app.debug')) {
+            return $this->errorResponse('僅在除錯模式可用', 404);
+        }
+        $redirect = config('services.google.redirect');
+        return $this->successResponse([
+            'redirect_uri' => $redirect,
+            'redirect_uri_trimmed' => $redirect ? rtrim((string) $redirect, '/') : null,
+            'client_id_set' => !empty(config('services.google.client_id')),
+            'client_secret_set' => !empty(config('services.google.client_secret')),
+        ], '請確認 redirect_uri 與 Google Console 的「已授權的重新導向 URI」完全一致');
+    }
+
+    /**
      * 導向 Google OAuth 授權頁
      *
      * GET /api/auth/google
      */
-    public function redirectToGoogle(): \Symfony\Component\HttpFoundation\RedirectResponse
+    public function redirectToGoogle(): \Symfony\Component\HttpFoundation\RedirectResponse|JsonResponse
     {
-        return Socialite::driver('google')->stateless()->redirect();
+        $clientId = config('services.google.client_id');
+        $redirectUri = rtrim((string) config('services.google.redirect'), '/');
+        if (empty($clientId) || empty($redirectUri)) {
+            return $this->errorResponse(
+                'Google 登入未設定：後端讀不到 GOOGLE_CLIENT_ID 或 GOOGLE_REDIRECT_URI。請確認 .env 有設定且執行 php artisan config:clear 後重啟後端。',
+                503
+            );
+        }
+        return Socialite::driver('google')
+            ->redirectUrl($redirectUri)
+            ->stateless()
+            ->redirect();
     }
 
     /**

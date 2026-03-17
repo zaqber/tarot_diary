@@ -116,9 +116,13 @@ export class AuthService {
       );
   }
 
-  /** 導向後端 Google OAuth（後端會再 redirect 到 Google，完成後導回 /auth/callback?token=xxx） */
+  /**
+   * 導向後端 Google OAuth（後端會再 redirect 到 Google，完成後導回 /auth/callback?token=xxx）
+   * 使用目前站點 origin，讓 Nginx 轉發 /api 到後端（本機開發可設 ng proxy 或環境變數）
+   */
   loginWithGoogle(): void {
-    window.location.href = '/api/auth/google';
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    window.location.href = `${origin}/api/auth/google`;
   }
 
   /** 從 Google callback 取得 token 後由前端儲存（在 callback 頁呼叫，只寫入 token） */

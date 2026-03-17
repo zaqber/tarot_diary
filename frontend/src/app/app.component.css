@@ -1,0 +1,11 @@
+/* 全站滿版背景（與透明 header 統一）*/
+.main-content {
+  padding-top: 70px;
+  min-height: calc(100vh - 70px);
+  background-image: linear-gradient(0deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.4)),
+                    url('/assets/images/bg-min.jpg');
+  background-attachment: fixed;
+  background-position: center center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}

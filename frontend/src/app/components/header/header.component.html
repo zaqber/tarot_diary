@@ -1,24 +1,24 @@
 <header class="header">
+  <div class="logo">
+    <a routerLink="/">
+      <img src="assets/images/logo.png" alt="Tarot Diary">
+    </a>
+  </div>
   <div class="header-content">
-    <div class="logo">
-      <a routerLink="/">
-        <img src="assets/images/default-logo.png" alt="Tarot Diary">
-      </a>
-    </div>
     <button class="menu-toggle" (click)="toggleMenu()" aria-label="Toggle menu">☰</button>
     <nav>
       <ul class="nav" [class.active]="isMenuOpen">
-        <li><a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a></li>
-        <li><a routerLink="/new_spread" routerLinkActive="active">New Spread</a></li>
-        <li><a routerLink="/history" routerLinkActive="active">History</a></li>
-        <li><a routerLink="/analysis" routerLinkActive="active">Analysis</a></li>
-        <li><a routerLink="/tarot_card_mgmt" routerLinkActive="active">Tarot Card Mgmt</a></li>
-        <li><a href="#" class="store-link">Store</a></li>
+        <li *ngIf="auth.isLoggedIn()"><a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a></li>
+        <li *ngIf="auth.isLoggedIn()"><a routerLink="/new_spread" routerLinkActive="active">New Spread</a></li>
+        <li *ngIf="auth.isLoggedIn()"><a routerLink="/history" routerLinkActive="active">History</a></li>
+        <li *ngIf="auth.isLoggedIn()"><a routerLink="/analysis" routerLinkActive="active">Analysis</a></li>
+        <li *ngIf="auth.isLoggedIn()"><a routerLink="/tarot_card_mgmt" routerLinkActive="active">Tarot Card Mgmt</a></li>
+        <li *ngIf="auth.isLoggedIn()"><a href="#" class="store-link">Store</a></li>
         <li *ngIf="auth.isLoggedIn()">
           <span class="user-name">{{ user?.display_name || user?.username }}</span>
           <button type="button" class="btn-logout" (click)="logout()">登出</button>
         </li>
-        <li *ngIf="!auth.isLoggedIn()"><a routerLink="/login">登入</a></li>
+        <li *ngIf="!auth.isLoggedIn()"><a routerLink="/login" class="nav-login">Login</a></li>
       </ul>
     </nav>
   </div>
