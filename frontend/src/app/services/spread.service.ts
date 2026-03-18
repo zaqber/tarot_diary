@@ -33,6 +33,16 @@ export class SpreadService {
     return this.http.post<{ data: CreateSpreadResponse }>(this.apiUrl, { theme });
   }
 
+  /** 尚未抽牌前可變更該筆牌陣主題 */
+  updateReadingTheme(readingId: number, theme: string): Observable<{
+    data: { theme: string; theme_label_zh: string };
+  }> {
+    return this.http.patch<{ data: { theme: string; theme_label_zh: string } }>(
+      `${this.apiUrl}/${readingId}/theme`,
+      { theme }
+    );
+  }
+
   /**
    * 為牌陣的某個位置紀錄一張牌
    */

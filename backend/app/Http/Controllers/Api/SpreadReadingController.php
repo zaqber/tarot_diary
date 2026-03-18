@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\SpreadReading;
 use App\Services\SpreadReadingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -43,6 +44,26 @@ class SpreadReadingController extends Controller
      * @param int $id spread_reading_id
      * @return JsonResponse
      */
+    /**
+     * 尚未抽任何牌前可變更主題
+     */
+    public function updateTheme(Request $request, int $id): JsonResponse
+    {
+        $request->validate([
+            'theme' => 'required|string|in:overall,love,career,finance',
+        ]);
+        $reading = SpreadReading::where('user_id', $request->user()->id)->findOrFail($id);
+        if ($reading->spreadCards()->count() > 0) {
+            return $this->errorResponse('已有抽牌紀錄後無法變更主題', 422);
+        }
+        $reading->update(['theme' => $request->input('theme')]);
+
+        return $this->successResponse([
+            'theme' => $reading->theme,
+            'theme_label_zh' => SpreadReadingService::themeLabel($reading->theme ?? 'overall'),
+        ], '主題已更新');
+    }
+
     public function addCard(Request $request, int $id): JsonResponse
     {
         $request->validate([

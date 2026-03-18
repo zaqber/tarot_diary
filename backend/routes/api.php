@@ -59,6 +59,7 @@ Route::prefix('spread-readings')->middleware('auth:sanctum')->group(function () 
     Route::get('/', [SpreadReadingController::class, 'index']);
     Route::post('/', [SpreadReadingController::class, 'store']);
     Route::get('/{id}', [SpreadReadingController::class, 'show']);
+    Route::patch('/{id}/theme', [SpreadReadingController::class, 'updateTheme']);
     Route::post('/{id}/cards', [SpreadReadingController::class, 'addCard']);
     Route::post('/{id}/cards/positions/{position}/tags', [SpreadReadingController::class, 'toggleTag']);
 });

@@ -305,10 +305,109 @@
   margin-top: 16px;
 }
 
+/* 頂部 About My Day（今日已抽牌） */
+.section-top-about {
+  background: linear-gradient(to right, #c5c9f9, #fee7ef);
+  padding: 48px 20px 40px;
+}
+
+.section-title-about {
+  margin-bottom: 28px;
+}
+
+.about-day-top-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+
+.card-placeholder-top {
+  min-height: 280px;
+  border: 3px dashed rgba(2, 159, 231, 0.45);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.5);
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.card-placeholder-top:hover {
+  border-color: #029fe7;
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.placeholder-num {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #029fe7;
+}
+
+.placeholder-text {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.tag-pending-hint {
+  font-size: 0.8rem;
+  color: #888;
+  margin: 8px 0 0;
+  font-style: italic;
+}
+
+.section-1-after-top {
+  padding-top: 48px;
+}
+
+.hint-partial {
+  margin-top: 0;
+}
+
+.continue-slots-wrap {
+  margin: 24px 0 32px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.continue-slots-label {
+  font-weight: 600;
+  color: #4a4a4a;
+  margin-bottom: 16px;
+}
+
+.card-grid-continue {
+  max-width: 720px;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+}
+
+.card-slot-continue .card-placeholder {
+  min-height: 200px;
+}
+
 /* Section 2 */
 .section-2 {
   background: linear-gradient(to right, #c5c9f9, #fee7ef);
   padding: 80px 20px;
+}
+
+.section-2-done {
+  padding: 32px 20px 48px;
+  text-align: center;
+}
+
+.done-hint {
+  margin: 0;
+  color: #555;
+  font-size: 1rem;
+}
+
+.done-hint a {
+  color: #029fe7;
+  font-weight: 700;
 }
 
 .card-wrapper {
@@ -394,8 +493,18 @@
 
 /* Mobile */
 @media (max-width: 768px) {
+  .about-day-top-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .card-placeholder-top {
+    min-height: 220px;
+  }
+
   .section-1,
-  .section-2 {
+  .section-2,
+  .section-top-about {
     padding: 60px 15px;
   }
 
