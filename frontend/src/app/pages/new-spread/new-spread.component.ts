@@ -47,6 +47,15 @@ export class NewSpreadComponent implements OnInit {
   loadingCards = false;
   errorMessage = '';
 
+  /** 抽牌主題（建立牌陣時寫入 DB） */
+  readonly themeOptions: Array<{ key: string; label: string }> = [
+    { key: 'overall', label: '整體' },
+    { key: 'love', label: '感情' },
+    { key: 'career', label: '事業' },
+    { key: 'finance', label: '財務' }
+  ];
+  selectedTheme = 'overall';
+
   constructor(
     private spreadService: SpreadService,
     private tarotCardService: TarotCardService,
@@ -96,6 +105,9 @@ export class NewSpreadComponent implements OnInit {
   private applyReadingDetail(detail: SpreadReadingDetail): void {
     this.readingDetail = detail;
     this.readingId = detail.id;
+    if (detail.theme) {
+      this.selectedTheme = detail.theme;
+    }
     this.slots = [1, 2, 3].map(pos => {
       const sc = detail.spread_cards?.find(c => c.position_number === pos);
       return {
@@ -113,6 +125,20 @@ export class NewSpreadComponent implements OnInit {
 
   get showAboutMyDay(): boolean {
     return this.allSlotsFilled && this.readingDetail != null;
+  }
+
+  /** 已有牌陣紀錄時鎖定主題（避免與已存 DB 不一致） */
+  get themeLocked(): boolean {
+    return this.readingId != null;
+  }
+
+  selectTheme(key: string): void {
+    if (this.themeLocked) return;
+    this.selectedTheme = key;
+  }
+
+  get themeLabel(): string {
+    return this.themeOptions.find(t => t.key === this.selectedTheme)?.label ?? '整體';
   }
 
   private loadSuitOptions(): void {
@@ -141,7 +167,7 @@ export class NewSpreadComponent implements OnInit {
   autoDraw(): void {
     this.errorMessage = '';
     this.autoDrawing = true;
-    this.spreadService.createSpreadReading().subscribe({
+    this.spreadService.createSpreadReading(this.selectedTheme).subscribe({
       next: (res: any) => {
         const id = res.data?.id ?? res.id;
         if (!id) {
@@ -218,7 +244,7 @@ export class NewSpreadComponent implements OnInit {
     this.errorMessage = '';
     if (this.readingId == null) {
       this.autoDrawing = true;
-      this.spreadService.createSpreadReading().subscribe({
+      this.spreadService.createSpreadReading(this.selectedTheme).subscribe({
         next: (res: any) => {
           const id = res.data?.id ?? res.id;
           this.readingId = id ?? null;

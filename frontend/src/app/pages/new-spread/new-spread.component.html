@@ -4,6 +4,22 @@
     <p class="page-date">{{ displayDate }}</p>
     <h2 class="section-title">Start My Day</h2>
 
+    <div class="theme-picker">
+      <span class="theme-label">抽牌主題</span>
+      <div class="theme-options" *ngIf="!themeLocked">
+        <button
+          *ngFor="let t of themeOptions"
+          type="button"
+          class="theme-btn"
+          [class.theme-btn-active]="selectedTheme === t.key"
+          (click)="selectTheme(t.key)"
+        >
+          {{ t.label }}
+        </button>
+      </div>
+      <span *ngIf="themeLocked" class="theme-locked-badge">{{ themeLabel }}</span>
+    </div>
+
     <div class="button-group">
       <button type="button" class="btn" (click)="autoDraw()" [disabled]="autoDrawing">
         {{ autoDrawing ? '抽牌中…' : '自動抽牌' }}
@@ -90,6 +106,7 @@
 <section class="section-2" *ngIf="showAboutMyDay">
   <div class="container">
     <p class="page-date">{{ displayDate }}</p>
+    <p class="theme-summary" *ngIf="readingDetail?.theme_label_zh">主題：{{ readingDetail?.theme_label_zh }}</p>
     <h2 class="section-title">About My Day</h2>
 
     <div class="card-grid">

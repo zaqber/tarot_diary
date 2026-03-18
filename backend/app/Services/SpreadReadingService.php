@@ -15,19 +15,42 @@ class SpreadReadingService
     /** 三張牌陣的 spread_type_id（依 SpreadTypesSeeder） */
     public const THREE_CARD_SPREAD_TYPE_ID = 2;
 
+    /** 抽牌主題 key => 中文顯示 */
+    public const THEMES = [
+        'overall' => '整體',
+        'love' => '感情',
+        'career' => '事業',
+        'finance' => '財務',
+    ];
+
+    public static function themeLabel(string $theme): string
+    {
+        return self::THEMES[$theme] ?? $theme;
+    }
+
+    public static function isValidTheme(string $theme): bool
+    {
+        return array_key_exists($theme, self::THEMES);
+    }
+
     /**
      * 建立一筆新的牌陣紀錄（三張牌陣）
      *
      * @param int $userId
+     * @param string $theme overall|love|career|finance
      * @return SpreadReading
      */
-    public function create(int $userId = 1): SpreadReading
+    public function create(int $userId = 1, string $theme = 'overall'): SpreadReading
     {
         $this->ensureUserExists($userId);
+        if (! self::isValidTheme($theme)) {
+            $theme = 'overall';
+        }
 
         return SpreadReading::create([
             'user_id' => $userId,
             'spread_type_id' => self::THREE_CARD_SPREAD_TYPE_ID,
+            'theme' => $theme,
             'reading_date' => now()->toDateString(),
             'question' => null,
             'overall_note' => null,
@@ -181,10 +204,14 @@ class SpreadReadingService
             ];
         })->toArray();
 
+        $theme = $reading->theme ?? 'overall';
+
         return [
             'id' => $reading->id,
             'user_id' => $reading->user_id,
             'spread_type_id' => $reading->spread_type_id,
+            'theme' => $theme,
+            'theme_label_zh' => self::themeLabel($theme),
             'spread_type' => $reading->spreadType ? [
                 'id' => $reading->spreadType->id,
                 'name' => $reading->spreadType->name,

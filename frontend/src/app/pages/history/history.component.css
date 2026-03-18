@@ -139,6 +139,16 @@
   font-size: 1rem;
 }
 
+.history-theme {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #029fe7;
+  background: rgba(2, 159, 231, 0.12);
+  padding: 4px 12px;
+  border-radius: 8px;
+  align-self: center;
+}
+
 /* 三張牌橫向並排，不換行 */
 .history-card-images {
   display: flex;

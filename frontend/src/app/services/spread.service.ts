@@ -8,6 +8,8 @@ export interface CreateSpreadResponse {
   id: number;
   spread_type_id: number;
   reading_date: string;
+  theme?: string;
+  theme_label_zh?: string;
 }
 
 export interface AddCardResponse {
@@ -27,8 +29,8 @@ export class SpreadService {
   /**
    * 建立一筆新的三張牌陣
    */
-  createSpreadReading(): Observable<{ data: CreateSpreadResponse }> {
-    return this.http.post<{ data: CreateSpreadResponse }>(this.apiUrl, {});
+  createSpreadReading(theme: string = 'overall'): Observable<{ data: CreateSpreadResponse }> {
+    return this.http.post<{ data: CreateSpreadResponse }>(this.apiUrl, { theme });
   }
 
   /**
@@ -86,6 +88,8 @@ export class SpreadService {
 export interface SpreadReadingListItem {
   id: number;
   reading_date: string;
+  theme?: string;
+  theme_label_zh?: string;
   spread_cards: Array<{
     position_number: number;
     card_id: number;

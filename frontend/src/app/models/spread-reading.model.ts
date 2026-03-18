@@ -20,6 +20,9 @@ export interface SpreadReadingDetail {
   id: number;
   user_id: number;
   spread_type_id: number;
+  /** overall | love | career | finance */
+  theme?: string;
+  theme_label_zh?: string;
   spread_type: SpreadTypeInfo | null;
   reading_date: string;
   reading_time: string;

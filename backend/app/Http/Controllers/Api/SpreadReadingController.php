@@ -21,11 +21,17 @@ class SpreadReadingController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        $request->validate([
+            'theme' => 'sometimes|string|in:overall,love,career,finance',
+        ]);
         $userId = $request->user()->id;
-        $reading = $this->service->create($userId);
+        $theme = (string) $request->input('theme', 'overall');
+        $reading = $this->service->create($userId, $theme);
         return $this->successResponse([
             'id' => $reading->id,
             'spread_type_id' => $reading->spread_type_id,
+            'theme' => $reading->theme,
+            'theme_label_zh' => SpreadReadingService::themeLabel($reading->theme ?? 'overall'),
             'reading_date' => $reading->reading_date?->toDateString(),
         ], '牌陣建立成功', 201);
     }
@@ -86,9 +92,12 @@ class SpreadReadingController extends Controller
         $page = (int) $request->input('page', 1);
         $paginator = $this->service->listReadings($userId, $perPage, $page);
         $data = $paginator->getCollection()->map(function ($reading) {
+            $theme = $reading->theme ?? 'overall';
             return [
                 'id' => $reading->id,
                 'reading_date' => $reading->reading_date?->toDateString(),
+                'theme' => $theme,
+                'theme_label_zh' => SpreadReadingService::themeLabel($theme),
                 'spread_cards' => $reading->spreadCards->sortBy('position_number')->map(function ($sc) {
                     return [
                         'position_number' => $sc->position_number,

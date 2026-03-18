@@ -6,6 +6,7 @@
     <div *ngIf="!loading && !errorMessage && readingDetail">
       <div class="detail-header">
         <p class="page-date">{{ displayDate }}</p>
+        <p class="reading-theme" *ngIf="readingDetail?.theme_label_zh">主題：{{ readingDetail?.theme_label_zh }}</p>
         <h2 class="section-title">About My Day</h2>
         <button type="button" class="back-btn" (click)="goBack()">返回</button>
       </div>

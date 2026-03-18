@@ -14,6 +14,7 @@ class SpreadReading extends Model
     protected $fillable = [
         'user_id',
         'spread_type_id',
+        'theme',
         'reading_date',
         'reading_time',
         'question',
