@@ -17,9 +17,11 @@ import { ReadingDetailComponent } from './pages/reading-detail/reading-detail.co
 import { LoginComponent } from './pages/login/login.component';
 import { AuthCallbackComponent } from './pages/auth-callback/auth-callback.component';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
+import { MarkdownToHtmlPipe } from './pipes/markdown-to-html.pipe';
 
 @NgModule({
   declarations: [
+    MarkdownToHtmlPipe,
     AppComponent,
     HeaderComponent,
     FooterComponent,

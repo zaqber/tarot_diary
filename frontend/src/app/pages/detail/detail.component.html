@@ -53,7 +53,8 @@
             <div class="meaning-content">
               <div class="meaning-item">
                 <h4>官方牌義</h4>
-                <p>{{ card.official_meaning.upright }}</p>
+                <p *ngIf="card.official_meaning.upright?.trim(); else noOfficialU">{{ card.official_meaning.upright }}</p>
+                <ng-template #noOfficialU><p class="meaning-empty">尚無官方牌義。可至「牌卡管理」填寫個人牌義。</p></ng-template>
               </div>
               <div class="meaning-item" *ngIf="card.self_definition.upright">
                 <h4>個人牌義</h4>
@@ -89,7 +90,8 @@
             <div class="meaning-content">
               <div class="meaning-item">
                 <h4>官方牌義</h4>
-                <p>{{ card.official_meaning.reversed }}</p>
+                <p *ngIf="card.official_meaning.reversed?.trim(); else noOfficialR">{{ card.official_meaning.reversed }}</p>
+                <ng-template #noOfficialR><p class="meaning-empty">尚無官方牌義。可至「牌卡管理」填寫個人牌義。</p></ng-template>
               </div>
               <div class="meaning-item" *ngIf="card.self_definition.reversed">
                 <h4>個人牌義</h4>

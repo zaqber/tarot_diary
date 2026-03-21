@@ -47,6 +47,11 @@ export class NewSpreadComponent implements OnInit {
   loadingCards = false;
   errorMessage = '';
 
+  /** 給 AI 的選填提問 */
+  aiQuestionDraft = '';
+  /** 請求 AI 解牌中 */
+  aiInterpretLoading = false;
+
   /** 抽牌主題（建立牌陣時寫入 DB） */
   readonly themeOptions: Array<{ key: string; label: string }> = [
     { key: 'overall', label: '整體' },
@@ -116,6 +121,38 @@ export class NewSpreadComponent implements OnInit {
         isReversed: sc?.is_reversed ?? false,
         selectedTagIds: sc?.selected_tag_ids ?? []
       };
+    });
+    if (detail.ai_interpretation) {
+      this.aiQuestionDraft = detail.ai_question || '';
+    } else if (detail.ai_question) {
+      this.aiQuestionDraft = detail.ai_question;
+    }
+  }
+
+  formatAiTime(iso: string | null | undefined): string {
+    if (!iso) return '';
+    try {
+      return new Date(iso).toLocaleString('zh-TW', { dateStyle: 'medium', timeStyle: 'short' });
+    } catch {
+      return iso;
+    }
+  }
+
+  requestAiInterpret(): void {
+    if (this.readingId == null || !this.allSlotsFilled) return;
+    this.errorMessage = '';
+    this.aiInterpretLoading = true;
+    this.spreadService.requestAiInterpret(this.readingId, this.aiQuestionDraft || undefined).subscribe({
+      next: (res: any) => {
+        this.aiInterpretLoading = false;
+        this.applyReadingDetail(res.data ?? res);
+      },
+      error: (err: { error?: { message?: string } }) => {
+        this.aiInterpretLoading = false;
+        const msg = err.error?.message;
+        this.errorMessage =
+          typeof msg === 'string' ? msg : 'AI 解牌失敗，請確認後端已設定 GEMINI_API_KEY（與 AI_PROVIDER）';
+      }
     });
   }
 

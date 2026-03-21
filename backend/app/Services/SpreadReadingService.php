@@ -59,6 +59,38 @@ class SpreadReadingService
     }
 
     /**
+     * 取得或建立「今日」三張牌陣：同一使用者同一天只應有一筆，避免 History 重複日期。
+     *
+     * @return array{0: SpreadReading, 1: bool} [reading, wasCreated]
+     */
+    public function findOrCreateTodayReading(int $userId, string $theme = 'overall'): array
+    {
+        $this->ensureUserExists($userId);
+        if (! self::isValidTheme($theme)) {
+            $theme = 'overall';
+        }
+
+        $today = now()->toDateString();
+        $existing = SpreadReading::query()
+            ->where('user_id', $userId)
+            ->where('spread_type_id', self::THREE_CARD_SPREAD_TYPE_ID)
+            ->whereDate('reading_date', $today)
+            ->orderByDesc('id')
+            ->first();
+
+        if ($existing) {
+            if ($existing->spreadCards()->count() === 0 && ($existing->theme ?? '') !== $theme) {
+                $existing->update(['theme' => $theme]);
+                $existing->refresh();
+            }
+
+            return [$existing, false];
+        }
+
+        return [$this->create($userId, $theme), true];
+    }
+
+    /**
      * 為牌陣的某個位置紀錄一張牌
      *
      * @param int $spreadReadingId
@@ -108,6 +140,7 @@ class SpreadReadingService
             ->where('user_id', $userId)
             ->where('spread_type_id', self::THREE_CARD_SPREAD_TYPE_ID)
             ->whereDate('reading_date', $dateStr)
+            ->orderByDesc('id')
             ->first();
         if (!$reading) {
             return null;
@@ -143,6 +176,7 @@ class SpreadReadingService
     public function getReadingWithCards(int $id, Request $request): array
     {
         $reading = SpreadReading::with(['spreadType', 'spreadCards.tagSelections', 'spreadCards.card.suit', 'spreadCards.card.tags'])
+            ->where('user_id', $request->user()->id)
             ->findOrFail($id);
 
         return $this->formatReadingWithCards($reading, $request);
@@ -223,6 +257,9 @@ class SpreadReadingService
             'question' => $reading->question,
             'overall_note' => $reading->overall_note,
             'is_reviewed' => $reading->is_reviewed,
+            'ai_question' => $reading->ai_question,
+            'ai_interpretation' => $reading->ai_interpretation,
+            'ai_generated_at' => $reading->ai_generated_at?->toIso8601String(),
             'spread_cards' => $cardsData,
         ];
     }

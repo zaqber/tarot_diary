@@ -37,3 +37,159 @@ button {
 html {
   scroll-behavior: smooth;
 }
+
+/* ========== AI 解牌 Markdown 排版（innerHTML，需全域） ========== */
+.ai-interpret-prose {
+  font-size: 1rem;
+  line-height: 1.88;
+  color: #333;
+  max-width: 48rem;
+  text-align: justify;
+  text-justify: inter-ideograph;
+}
+
+.ai-interpret-prose > *:first-child {
+  margin-top: 0 !important;
+}
+
+.ai-interpret-prose h1 {
+  font-family: 'Raleway', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #0d3d52;
+  margin: 1.75rem 0 0.85rem;
+  line-height: 1.35;
+}
+
+.ai-interpret-prose h2 {
+  font-family: 'Raleway', sans-serif;
+  font-size: 1.22rem;
+  font-weight: 700;
+  color: #1a5a7a;
+  margin: 1.6rem 0 0.7rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 2px solid rgba(2, 159, 231, 0.22);
+  line-height: 1.4;
+}
+
+.ai-interpret-prose h3 {
+  font-family: 'Raleway', sans-serif;
+  font-size: 1.06rem;
+  font-weight: 700;
+  color: #2c5282;
+  margin: 1.35rem 0 0.55rem;
+  line-height: 1.45;
+}
+
+.ai-interpret-prose h4 {
+  font-size: 1rem;
+  font-weight: 650;
+  color: #3d5a6c;
+  margin: 1.1rem 0 0.45rem;
+}
+
+.ai-interpret-prose p {
+  margin: 0 0 0.95rem;
+}
+
+.ai-interpret-prose p:last-child {
+  margin-bottom: 0;
+}
+
+.ai-interpret-prose strong,
+.ai-interpret-prose b {
+  color: #1a3344;
+  font-weight: 650;
+}
+
+.ai-interpret-prose em,
+.ai-interpret-prose i {
+  font-style: italic;
+  color: #444;
+}
+
+.ai-interpret-prose ul,
+.ai-interpret-prose ol {
+  margin: 0 0 1rem 0;
+  padding-left: 1.35rem;
+}
+
+.ai-interpret-prose ul {
+  list-style-type: disc;
+}
+
+.ai-interpret-prose ol {
+  list-style-type: decimal;
+}
+
+.ai-interpret-prose li {
+  margin-bottom: 0.5rem;
+  padding-left: 0.25rem;
+}
+
+.ai-interpret-prose li::marker {
+  color: #029fe7;
+}
+
+.ai-interpret-prose li > p {
+  margin-bottom: 0.4rem;
+}
+
+.ai-interpret-prose blockquote {
+  margin: 1rem 0;
+  padding: 0.85rem 1.1rem;
+  border-left: 4px solid #029fe7;
+  background: rgba(2, 159, 231, 0.07);
+  border-radius: 0 8px 8px 0;
+  color: #3a4a55;
+}
+
+.ai-interpret-prose blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+.ai-interpret-prose a {
+  color: #0278b8;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.ai-interpret-prose a:hover {
+  color: #029fe7;
+}
+
+.ai-interpret-prose code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.88em;
+  background: #eef3f7;
+  padding: 0.12em 0.4em;
+  border-radius: 4px;
+  color: #2c5282;
+}
+
+.ai-interpret-prose pre {
+  overflow-x: auto;
+  background: #f4f7fa;
+  padding: 1rem 1.1rem;
+  border-radius: 10px;
+  margin: 1rem 0;
+  border: 1px solid #e2e8f0;
+}
+
+.ai-interpret-prose pre code {
+  background: none;
+  padding: 0;
+  color: #333;
+}
+
+.ai-interpret-prose hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #c5d5e0, transparent);
+  margin: 1.6rem 0;
+}
+
+.ai-md-fallback {
+  color: #888;
+  font-style: italic;
+}

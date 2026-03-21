@@ -4,6 +4,7 @@ import { SpreadService } from '../../services/spread.service';
 import { TarotCardService } from '../../services/tarot-card.service';
 import { TarotCard } from '../../models/tarot-card.model';
 import { SpreadReadingDetail } from '../../models/spread-reading.model';
+import { hasReadableSpreadCards } from '../../utils/spread-reading.util';
 interface SlotCard {
   position_number: number;
   card: TarotCard | null;
@@ -26,6 +27,9 @@ export class ReadingDetailComponent implements OnInit {
   ];
   loading = true;
   errorMessage = '';
+  aiQuestionDraft = '';
+  aiInterpretLoading = false;
+  aiError = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -56,10 +60,25 @@ export class ReadingDetailComponent implements OnInit {
     this.loading = true;
     this.errorMessage = '';
     this.spreadService.getSpreadReading(this.readingId!).subscribe({
-      next: (res: any) => this.applyReadingDetail(res.data ?? res),
-      error: () => {
+      next: (res: any) => {
+        const detail = res?.data ?? res;
+        if (!detail || typeof detail !== 'object' || detail.id == null) {
+          this.loading = false;
+          this.readingDetail = null;
+          this.errorMessage = '伺服器回傳資料異常，請重新整理或從 History 再開啟。';
+          return;
+        }
+        this.applyReadingDetail(detail);
+      },
+      error: (err: { status?: number }) => {
         this.loading = false;
-        this.errorMessage = '無法載入此筆抽牌紀錄';
+        this.readingDetail = null;
+        if (err?.status === 404) {
+          this.errorMessage =
+            '找不到這筆紀錄，或該紀錄不屬於目前登入帳號（請確認是否用同一使用者登入）。';
+        } else {
+          this.errorMessage = '無法載入此筆抽牌紀錄，請確認已登入且後端正常。';
+        }
       }
     });
   }
@@ -75,6 +94,52 @@ export class ReadingDetailComponent implements OnInit {
         isReversed: sc?.is_reversed ?? false,
         selectedTagIds: sc?.selected_tag_ids ?? []
       };
+    });
+    if (detail.ai_interpretation) {
+      this.aiQuestionDraft = detail.ai_question || '';
+    } else if (detail.ai_question) {
+      this.aiQuestionDraft = detail.ai_question;
+    }
+  }
+
+  get allSlotsFilled(): boolean {
+    return this.slots.every(s => s.card != null);
+  }
+
+  /** 至少已有一張牌（用於區分「完全沒抽牌」的紀錄） */
+  get hasAnyCard(): boolean {
+    return this.slots.some(s => s.card != null);
+  }
+
+  /** API 的 spread_cards 是否至少有一張對得到 tarot_cards */
+  get hasReadableSpread(): boolean {
+    return hasReadableSpreadCards(this.readingDetail?.spread_cards);
+  }
+
+  formatAiTime(iso: string | null | undefined): string {
+    if (!iso) return '';
+    try {
+      return new Date(iso).toLocaleString('zh-TW', { dateStyle: 'medium', timeStyle: 'short' });
+    } catch {
+      return iso;
+    }
+  }
+
+  requestAiInterpret(): void {
+    if (this.readingId == null || !this.allSlotsFilled) return;
+    this.aiError = '';
+    this.aiInterpretLoading = true;
+    this.spreadService.requestAiInterpret(this.readingId, this.aiQuestionDraft || undefined).subscribe({
+      next: (res: any) => {
+        this.aiInterpretLoading = false;
+        this.applyReadingDetail(res.data ?? res);
+      },
+      error: (err: { error?: { message?: string } }) => {
+        this.aiInterpretLoading = false;
+        const msg = err.error?.message;
+        this.aiError =
+          typeof msg === 'string' ? msg : 'AI 解牌失敗，請確認後端已設定 API Key';
+      }
     });
   }
 

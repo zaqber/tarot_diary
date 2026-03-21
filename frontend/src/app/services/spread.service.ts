@@ -93,6 +93,19 @@ export class SpreadService {
       { tag_id: tagId }
     );
   }
+
+  /**
+   * 請 AI（後端預設 Gemini）依主題＋三張牌解牌
+   */
+  requestAiInterpret(readingId: number, question?: string | null): Observable<{ data: SpreadReadingDetail }> {
+    const body: { question?: string } = {};
+    const q = question?.trim();
+    if (q) body.question = q;
+    return this.http.post<{ data: SpreadReadingDetail }>(
+      `${this.apiUrl}/${readingId}/ai-interpret`,
+      body
+    );
+  }
 }
 
 export interface SpreadReadingListItem {

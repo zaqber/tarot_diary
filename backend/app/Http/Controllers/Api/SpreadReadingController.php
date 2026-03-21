@@ -5,13 +5,15 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\SpreadReading;
 use App\Services\SpreadReadingService;
+use App\Services\TarotInterpretationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class SpreadReadingController extends Controller
 {
     public function __construct(
-        protected SpreadReadingService $service
+        protected SpreadReadingService $service,
+        protected TarotInterpretationService $tarotAi
     ) {}
 
     /**
@@ -27,14 +29,21 @@ class SpreadReadingController extends Controller
         ]);
         $userId = $request->user()->id;
         $theme = (string) $request->input('theme', 'overall');
-        $reading = $this->service->create($userId, $theme);
-        return $this->successResponse([
+        [$reading, $wasCreated] = $this->service->findOrCreateTodayReading($userId, $theme);
+        $payload = [
             'id' => $reading->id,
             'spread_type_id' => $reading->spread_type_id,
             'theme' => $reading->theme,
             'theme_label_zh' => SpreadReadingService::themeLabel($reading->theme ?? 'overall'),
             'reading_date' => $reading->reading_date?->toDateString(),
-        ], '牌陣建立成功', 201);
+            'reused_today' => ! $wasCreated,
+        ];
+
+        return $this->successResponse(
+            $payload,
+            $wasCreated ? '牌陣建立成功' : '沿用今日既有牌陣',
+            $wasCreated ? 201 : 200
+        );
     }
 
     /**
@@ -176,5 +185,79 @@ class SpreadReadingController extends Controller
     {
         $data = $this->service->getReadingWithCards($id, $request);
         return $this->successResponse($data, '取得牌陣詳情成功');
+    }
+
+    /**
+     * 以 AI（預設 Gemini）依主題＋三張牌與選填提問解牌，寫入 ai_question / ai_interpretation（AI_PROVIDER）
+     */
+    public function requestAiInterpret(Request $request, int $id): JsonResponse
+    {
+        $request->validate([
+            'question' => 'nullable|string|max:2000',
+        ]);
+
+        $reading = SpreadReading::where('user_id', $request->user()->id)
+            ->with(['spreadCards.card'])
+            ->findOrFail($id);
+
+        if ($reading->spreadCards->count() !== 3) {
+            return $this->errorResponse('須抽滿三張牌後才能請 AI 解牌', 422);
+        }
+
+        $themeLabel = SpreadReadingService::themeLabel($reading->theme ?? 'overall');
+        $positionLabels = [
+            1 => '過去（根源與背景）',
+            2 => '現在（當前處境）',
+            3 => '未來（走向與可能發展）',
+        ];
+
+        $lines = [];
+        foreach ($reading->spreadCards->sortBy('position_number') as $sc) {
+            $card = $sc->card;
+            $pos = $positionLabels[$sc->position_number] ?? '第 '.$sc->position_number.' 張';
+            $ori = $sc->is_reversed ? '逆位' : '正位';
+            $name = $card ? ($card->name_zh.'（'.$card->name.'）') : '未知';
+            $brief = $sc->is_reversed
+                ? (string) ($card->official_meaning_reversed ?? '')
+                : (string) ($card->official_meaning_upright ?? '');
+            $brief = trim($brief) !== '' ? ' 參考牌義：'.$brief : '';
+            $lines[] = "- **{$pos}**：{$name}，{$ori}。{$brief}";
+        }
+        $cardsBlock = implode("\n", $lines);
+
+        $optionalQ = trim((string) $request->input('question', ''));
+        $qPart = $optionalQ !== ''
+            ? "\n\n【使用者特別想問的問題】\n".$optionalQ."\n請在解牌中充分回應此問題。"
+            : '';
+
+        $prompt = <<<PROMPT
+你是一位溫暖、具同理心的塔羅解牌師，請全程使用繁體中文回答。
+
+請依下列「抽牌主題」與三張牌（含正逆位與牌陣位置：過去／現在／未來）給出整合解讀，包含：整體氛圍、各位置簡述、三張牌如何連貫、具體可行的建議。語氣支持性，避免恐嚇式或宿命論預言；可提醒塔羅作為自我反思工具，最終決定仍在使用者手中。
+
+**抽牌主題**：{$themeLabel}
+
+**牌面**：
+{$cardsBlock}
+{$qPart}
+
+請分段說明（可使用 ## 或小標題），篇幅適中、易讀。
+PROMPT;
+
+        try {
+            $text = $this->tarotAi->interpret($prompt);
+        } catch (\RuntimeException $e) {
+            return $this->errorResponse($e->getMessage(), 503);
+        }
+
+        $reading->update([
+            'ai_question' => $optionalQ !== '' ? $optionalQ : null,
+            'ai_interpretation' => $text,
+            'ai_generated_at' => now(),
+        ]);
+
+        $data = $this->service->getReadingWithCards($id, $request);
+
+        return $this->successResponse($data, 'AI 解牌完成');
     }
 }

@@ -3,7 +3,8 @@
     <p *ngIf="loading" class="loading-msg">載入中…</p>
     <p *ngIf="errorMessage" class="error-msg">{{ errorMessage }}</p>
 
-    <div *ngIf="!loading && !errorMessage && readingDetail">
+    <!-- 有至少一張對得到的牌才顯示牌陣與 AI -->
+    <div *ngIf="!loading && !errorMessage && readingDetail && hasReadableSpread">
       <div class="detail-header">
         <p class="page-date">{{ displayDate }}</p>
         <p class="reading-theme" *ngIf="readingDetail?.theme_label_zh">主題：{{ readingDetail?.theme_label_zh }}</p>
@@ -19,6 +20,9 @@
             [class.card-reversed]="slot.isReversed"
             [style.background-image]="'url(' + getCardImageUrl(slot.card, false) + ')'"
           ></div>
+          <div *ngIf="!slot.card" class="card card-placeholder reading-slot-empty">
+            <span>第 {{ slot.position_number }} 張 · 未紀錄</span>
+          </div>
           <div class="card-info">
             <h4 class="card-title">{{ slot.card?.name || slot.card?.name_zh || '—' }}{{ slot.isReversed ? '（逆位）' : '' }}</h4>
             <div class="tag-group tag-group-bottom">
@@ -34,6 +38,47 @@
           </div>
         </div>
       </div>
+
+      <div class="ai-reading-block" *ngIf="allSlotsFilled">
+        <h3 class="ai-section-title">AI 解牌</h3>
+        <div *ngIf="readingDetail?.ai_interpretation" class="ai-result-box">
+          <p class="ai-meta" *ngIf="readingDetail?.ai_generated_at">
+            產生時間：{{ formatAiTime(readingDetail?.ai_generated_at) }}
+          </p>
+          <div *ngIf="readingDetail?.ai_question" class="ai-user-q">
+            <strong>你的提問</strong>
+            <p>{{ readingDetail.ai_question }}</p>
+          </div>
+          <div
+            class="ai-interpret-body ai-interpret-prose"
+            [innerHTML]="readingDetail.ai_interpretation | markdownToHtml"
+          ></div>
+        </div>
+        <p class="ai-hint" *ngIf="!readingDetail?.ai_interpretation">尚未請 AI 解牌，可於下方送出請求。</p>
+        <label class="ai-label" for="ai-q-reading">給 AI 的明確問題（選填）</label>
+        <textarea
+          id="ai-q-reading"
+          class="ai-textarea"
+          [(ngModel)]="aiQuestionDraft"
+          rows="3"
+          placeholder="例如：這段關係我該如何調整？留空則僅依主題與牌面解讀。"
+          [disabled]="aiInterpretLoading"
+        ></textarea>
+        <button
+          type="button"
+          class="btn ai-btn"
+          (click)="requestAiInterpret()"
+          [disabled]="aiInterpretLoading"
+        >
+          {{ aiInterpretLoading ? 'AI 解牌中…' : (readingDetail?.ai_interpretation ? '重新請 AI 解牌' : '請 AI 解牌') }}
+        </button>
+        <p *ngIf="aiError" class="error-msg ai-error">{{ aiError }}</p>
+      </div>
+    </div>
+
+    <!-- 有紀錄但 spread_cards 完全對不到牌：不顯示牌區，僅返回 -->
+    <div *ngIf="!loading && !errorMessage && readingDetail && !hasReadableSpread" class="reading-no-display">
+      <button type="button" class="back-btn" (click)="goBack()">返回 History</button>
     </div>
   </div>
 </section>

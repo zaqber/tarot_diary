@@ -216,3 +216,46 @@
     </div>
   </div>
 </section>
+
+<!-- AI 解牌（三張齊全後） -->
+<section class="section-ai" *ngIf="showAboutMyDay">
+  <div class="container">
+    <h3 class="ai-section-title">AI 解牌</h3>
+    <p class="ai-hint" *ngIf="!readingDetail?.ai_interpretation">
+      可請 AI 依你的<strong>抽牌主題</strong>與<strong>三張牌</strong>（過去／現在／未來）提供整合解讀。
+    </p>
+    <div *ngIf="readingDetail?.ai_interpretation" class="ai-result-box">
+      <p class="ai-meta" *ngIf="readingDetail?.ai_generated_at">
+        產生時間：{{ formatAiTime(readingDetail?.ai_generated_at) }}
+      </p>
+      <div *ngIf="readingDetail?.ai_question" class="ai-user-q">
+        <strong>你的提問</strong>
+        <p>{{ readingDetail.ai_question }}</p>
+      </div>
+      <div
+        class="ai-interpret-body ai-interpret-prose"
+        [innerHTML]="readingDetail.ai_interpretation | markdownToHtml"
+      ></div>
+    </div>
+    <label class="ai-label" for="ai-q-new-spread">給 AI 的明確問題（選填）</label>
+    <textarea
+      id="ai-q-new-spread"
+      class="ai-textarea"
+      [(ngModel)]="aiQuestionDraft"
+      rows="3"
+      placeholder="例如：這週職場上我該注意什麼？留空則 AI 僅依主題與牌面解讀。"
+      [disabled]="aiInterpretLoading"
+    ></textarea>
+    <button
+      type="button"
+      class="btn ai-btn"
+      (click)="requestAiInterpret()"
+      [disabled]="aiInterpretLoading"
+    >
+      {{ aiInterpretLoading ? 'AI 解牌中…' : (readingDetail?.ai_interpretation ? '重新請 AI 解牌' : '請 AI 解牌') }}
+    </button>
+    <p class="ai-footnote">
+      結果會儲存於此筆紀錄，也可至 <a [routerLink]="['/reading', readingId!]">閱讀紀錄</a> 查看。
+    </p>
+  </div>
+</section>

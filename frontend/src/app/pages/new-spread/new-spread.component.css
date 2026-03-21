@@ -543,4 +543,94 @@
   }
 }
 
+/* AI 解牌 */
+.section-ai {
+  background: rgba(255, 255, 255, 0.88);
+  padding: 48px 20px 80px;
+  border-top: 1px solid rgba(2, 159, 231, 0.15);
+}
+
+.ai-section-title {
+  font-size: 1.35rem;
+  color: #1a5a7a;
+  margin: 0 0 12px;
+}
+
+.ai-hint {
+  color: #666;
+  font-size: 0.95rem;
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.ai-result-box {
+  background: #f8fafb;
+  border: 1px solid #e0e8ec;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.ai-meta {
+  font-size: 0.8rem;
+  color: #888;
+  margin: 0 0 16px;
+}
+
+.ai-user-q {
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed #ccc;
+}
+
+.ai-user-q strong {
+  display: block;
+  margin-bottom: 6px;
+  color: #029fe7;
+}
+
+.ai-user-q p {
+  margin: 0;
+  color: #444;
+  line-height: 1.6;
+}
+
+/* 內文排版由全域 .ai-interpret-prose 負責（Markdown → HTML） */
+.ai-interpret-body {
+  margin-top: 4px;
+}
+
+.ai-label {
+  display: block;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+
+.ai-textarea {
+  width: 100%;
+  max-width: 640px;
+  padding: 12px 14px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font: inherit;
+  margin-bottom: 16px;
+  box-sizing: border-box;
+  resize: vertical;
+}
+
+.ai-btn {
+  margin-bottom: 12px;
+}
+
+.ai-footnote {
+  font-size: 0.85rem;
+  color: #888;
+  margin: 0;
+}
+
+.ai-footnote a {
+  color: #029fe7;
+}
 

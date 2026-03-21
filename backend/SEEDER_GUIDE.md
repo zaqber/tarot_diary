@@ -21,6 +21,17 @@
   - 寶劍牌組：14 張
   - 錢幣牌組：14 張
   - 每組包含：王牌、2-10、侍者、騎士、王后、國王
+  - 皆含繁體中文正／逆位官方牌義（`database/seeders/data/minor_arcana_meanings_zh.php`）
+
+### 補齊既有資料庫的小阿爾克那牌義
+
+若專案早期建立時小牌官方牌義為空，請在 `backend` 目錄執行：
+
+```bash
+php artisan db:seed --class=UpdateMinorArcanaMeaningsSeeder
+```
+
+僅會更新「官方正位牌義仍為空白」的小阿爾克那，不會覆寫你已手動填過的內容。
 
 ### 3. **TagsSeeder** - 預設標籤
 超過 60 個標籤，分為：
