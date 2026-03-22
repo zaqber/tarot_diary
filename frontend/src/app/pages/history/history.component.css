@@ -106,6 +106,145 @@
   text-decoration: underline;
 }
 
+/* 輪播切換紀錄 */
+.history-carousel-wrap {
+  margin-top: 8px;
+}
+
+.history-carousel-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 720px;
+  margin: 0 auto 16px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.history-count {
+  font-weight: 800;
+  color: #029fe7;
+  font-size: 1.1rem;
+}
+
+.history-hint-nav {
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.history-carousel {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 14px;
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+.history-nav-btn {
+  flex-shrink: 0;
+  width: 52px;
+  border-radius: 12px;
+  border: 2px solid rgba(2, 159, 231, 0.4);
+  background: #fff;
+  font-size: 1.35rem;
+  line-height: 1;
+  color: #029fe7;
+  cursor: pointer;
+  transition: all 0.2s;
+  align-self: center;
+  min-height: 100px;
+  padding: 0;
+}
+
+.history-nav-btn:hover:not(:disabled) {
+  background: rgba(2, 159, 231, 0.12);
+  border-color: #029fe7;
+}
+
+.history-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.history-carousel-slide {
+  flex: 1;
+  min-width: 0;
+}
+
+.history-slide-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 28px 20px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  text-decoration: none;
+  color: #333;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.history-slide-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.14);
+}
+
+.history-slide-datetime {
+  margin: 0;
+  font-weight: 700;
+  color: #029fe7;
+  font-size: 1.05rem;
+  text-align: center;
+}
+
+.history-slide-theme {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #029fe7;
+  background: rgba(2, 159, 231, 0.12);
+  padding: 4px 12px;
+  border-radius: 8px;
+}
+
+.history-slide-card .history-card-img {
+  width: 120px;
+  height: 180px;
+}
+
+.history-quick-link {
+  text-align: center;
+  margin-top: 32px;
+}
+
+.history-quick-link a {
+  color: #029fe7;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.history-quick-link a:hover {
+  text-decoration: underline;
+}
+
+/* 今天多筆：沿用輪播元件，卡牌尺寸與單筆「今天」一致 */
+.history-today-multi {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.history-today-toolbar {
+  margin-bottom: 12px;
+}
+
+.history-carousel-today .history-slide-card.history-item-today .history-card-img {
+  width: 140px;
+  height: 210px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
 /* 每行三筆紀錄（三天並排） */
 .history-list {
   display: grid;
@@ -361,6 +500,26 @@
 
   .section-description {
     width: 100%;
+  }
+
+  .history-carousel {
+    flex-wrap: wrap;
+  }
+
+  .history-nav-btn {
+    width: calc(50% - 7px);
+    min-height: 52px;
+    order: 2;
+  }
+
+  .history-carousel-slide {
+    flex: 1 1 100%;
+    order: 1;
+  }
+
+  .history-slide-card .history-card-img {
+    width: 88px;
+    height: 132px;
   }
 
   .history-list {

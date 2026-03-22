@@ -8,6 +8,7 @@ export interface CreateSpreadResponse {
   id: number;
   spread_type_id: number;
   reading_date: string;
+  reading_time?: string;
   theme?: string;
   theme_label_zh?: string;
 }
@@ -111,6 +112,8 @@ export class SpreadService {
 export interface SpreadReadingListItem {
   id: number;
   reading_date: string;
+  /** ISO 8601，同日多筆時用於區分順序 */
+  reading_time?: string | null;
   theme?: string;
   theme_label_zh?: string;
   spread_cards: Array<{
