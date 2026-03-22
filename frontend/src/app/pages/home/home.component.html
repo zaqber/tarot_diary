@@ -1,94 +1,118 @@
-<!-- Section 1: Hero -->
+<!-- Hero -->
 <section id="home" class="hero-section">
   <div class="container">
     <div class="title-content">
       <div class="accent-line"></div>
       <h1 class="hero-title">Tarot<br>Diary</h1>
-      <p class="hero-subtitle">Define your own tarot.</p>
-      <a href="#contact" class="btn-primary">Contact Us</a>
+      <p class="hero-subtitle">結合學習筆記與直覺追蹤的塔羅日記。</p>
+      <a routerLink="/login" class="btn-primary">開始使用</a>
     </div>
   </div>
 </section>
 
-<!-- Section 2: How It Works -->
-<section id="how" class="how-section">
+<!-- Section 1：特色 -->
+<section id="features" class="features-section">
   <div class="container">
-    <h2 class="section-title">How it works</h2>
-    <p class="section-desc">Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore.</p>
-    
-    <div class="cards-grid">
-      <div class="card-item">
-        <img src="assets/images/sign-page-abstract-concept-illustration_335657-3875.jpg" alt="">
-        <div class="card-icon"></div>
-        <h3 class="card-title">Define your Card with tags</h3>
-        <p class="card-text">每天早上抽牌,並在晚上寫日籍,確認自己的生活狀態。</p>
-        <p class="card-note">Sample text. Click to select the text box.</p>
+    <h2 class="section-title">為什麼是 Tarot Diary？</h2>
+    <p class="section-desc">把每一次抽牌變成可搜尋、可分析的成長軌跡。</p>
+
+    <div class="features-grid">
+      <div class="feature-block">
+        <h3 class="feature-block-title">專案動機</h3>
+        <p class="feature-block-text">
+          許多塔羅學習者習慣用紙本記錄，但難以快速搜尋與回顧歷史資料。
+          Tarot Diary 希望把「學習筆記」與「直覺追蹤」放在同一套流程裡，讓紀錄不只是收藏，而是能幫助你理解自己的模式。
+        </p>
       </div>
 
-      <div class="card-item">
-        <img src="assets/images/-evaluation-rating-estimating-excellent-review-customer-satisfaction-with-service-highest-score-client-feedback_335657-2684.jpg" alt="">
-        <div class="card-icon"></div>
-        <h3 class="card-title">Practice Everyday and Prove your Intuition</h3>
-        <p class="card-text">用 tag 來客製化卡的定義。</p>
-        <p class="card-note">Sample text. Click to select the text box.</p>
+      <div class="feature-block">
+        <h3 class="feature-block-title">目標受眾</h3>
+        <p class="feature-block-text">
+          適合<strong>塔羅初學者</strong>建立穩定練習習慣，也適合希望<strong>記錄直覺成長</strong>的占卜師，
+          用結構化方式累積個人牌意與生活經驗的對照。
+        </p>
       </div>
 
-      <div class="card-item">
-        <img src="assets/images/cloud-robotics-abstract-concept-illustration_335657-3801.jpg" alt="">
-        <div class="card-icon"></div>
-        <h3 class="card-title">Log Analysis</h3>
-        <p class="card-text">用 tag 來做圖表化分析自己各時期的狀態。</p>
-        <p class="card-note">Sample text. Click to select the text box.</p>
-      </div>
-
-      <div class="card-item">
-        <img src="assets/images/ect-innovative-solutions-creative-thinking-brave-ideas-businessman-self-motivation-professional-aspirations-vector-isolated.jpg" alt="">
-        <div class="card-icon"></div>
-        <h3 class="card-title">Launch website</h3>
-        <p class="card-text">Sample text. Click to select the text box. Click again or double click to start editing the text.</p>
+      <div class="feature-block feature-block-wide">
+        <h3 class="feature-block-title">核心差異化</h3>
+        <ul class="feature-list">
+          <li>
+            <strong>圖像化數據：</strong>統計最常出現的牌，一眼看出你在某段時間裡反覆遇見的主題。
+          </li>
+          <li>
+            <strong>情緒關聯：</strong>記錄抽牌當下的心情，之後在分析裡觀察情緒與牌意、生活事件之間的連結。
+          </li>
+        </ul>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Section 3: Complex Layout -->
-<section class="complex-section">
-  <div class="complex-inner">
-    <div class="bg-shape"></div>
-    <img class="main-circle-img" src="assets/images/ghghghh.jpg" alt="">
-    <img class="small-circle-img" src="assets/images/41b33903-3e8e-4cdd-bded-87e6350ce68a.jpg" alt="">
-    
-    <div class="bottom-features">
-      <div class="feature-card">
-        <h3 class="feature-title">Feature One</h3>
-        <p class="feature-text">Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
-      </div>
-      <div class="feature-card">
-        <h3 class="feature-title">Feature Two</h3>
-        <p class="feature-text">Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
-      </div>
-      <div class="feature-card">
-        <h3 class="feature-title">Feature Three</h3>
-        <p class="feature-text">Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
-      </div>
+<!-- Section 2：使用流程 -->
+<section id="flow" class="flow-section">
+  <div class="container">
+    <h2 class="section-title">使用流程</h2>
+    <p class="section-desc">從登入到分析，五步完成一輪完整的塔羅日記循環。</p>
+
+    <ol class="flow-steps">
+      <li class="flow-step">
+        <span class="flow-step-num">1</span>
+        <div class="flow-step-body">
+          <h3 class="flow-step-title">註冊／登入</h3>
+          <p class="flow-step-text">建立帳號後，你的牌陣與筆記會安全保存在雲端，隨時可查。</p>
+        </div>
+      </li>
+      <li class="flow-step">
+        <span class="flow-step-num">2</span>
+        <div class="flow-step-body">
+          <h3 class="flow-step-title">建立牌陣、完成抽牌</h3>
+          <p class="flow-step-text">在「新牌陣」選擇版型並抽牌，把當次的牌面固定下來。</p>
+        </div>
+      </li>
+      <li class="flow-step">
+        <span class="flow-step-num">3</span>
+        <div class="flow-step-body">
+          <h3 class="flow-step-title">記錄心情與筆記</h3>
+          <p class="flow-step-text">在牌陣詳情中寫下直覺、關鍵字與當下情緒，與牌意對照留存。</p>
+        </div>
+      </li>
+      <li class="flow-step">
+        <span class="flow-step-num">4</span>
+        <div class="flow-step-body">
+          <h3 class="flow-step-title">瀏覽歷史</h3>
+          <p class="flow-step-text">在「歷史」依時間軸搜尋、開啟過往牌陣，補寫或修正筆記。</p>
+        </div>
+      </li>
+      <li class="flow-step">
+        <span class="flow-step-num">5</span>
+        <div class="flow-step-body">
+          <h3 class="flow-step-title">分析與牌卡管理</h3>
+          <p class="flow-step-text">到「分析」查看牌面出現頻率等統計；必要時在「牌卡管理」調整個人牌庫與標籤。</p>
+        </div>
+      </li>
+    </ol>
+
+    <div class="flow-cta">
+      <a routerLink="/login" class="btn-primary">立即登入試用</a>
     </div>
   </div>
 </section>
 
-<!-- Section 4: About -->
+<!-- About（簡短收尾） -->
 <section class="about-section">
   <div class="container">
     <div class="about-grid">
       <div class="about-content">
-        <h2 class="about-title">What We Do</h2>
-        <p class="about-text">Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum.</p>
-        <!-- <a href="#contact" class="btn-primary">Contact Us</a> -->
+        <h2 class="about-title">定義屬於你的塔羅</h2>
+        <p class="about-text">
+          Tarot Diary 不取代你的直覺，而是幫你把練習變成可查、可比的資料。
+          從今天的一張牌開始，累積專屬於你的牌意與生命故事。
+        </p>
       </div>
       <div class="about-image-wrap">
-        <img src="assets/images/Untitled-21.png" alt="">
+        <img src="assets/images/Untitled-21.png" alt="塔羅日記示意">
       </div>
     </div>
   </div>
 </section>
-
 
