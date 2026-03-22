@@ -1,5 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { forkJoin, of } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 import { SpreadService } from '../../services/spread.service';
 import { TarotCardService } from '../../services/tarot-card.service';
 import { SuitService } from '../../services/suit.service';
@@ -17,12 +19,33 @@ interface SlotCard {
   selectedTagIds: number[];
 }
 
+/**
+ * 洗牌儀式畫面：參考實體牌「散亂堆在桌布上」——由中心向外多層密度、隨機角度與疊放（僅視覺）
+ */
+interface ShuffleVisualSlot {
+  dx: number;
+  dy: number;
+  tilt: number;
+  z: number;
+  w: number;
+  h: number;
+  jx1: number;
+  jy1: number;
+  jx2: number;
+  jy2: number;
+  jx3: number;
+  jy3: number;
+  swing1: number;
+  swing2: number;
+  swing3: number;
+}
+
 @Component({
   selector: 'app-new-spread',
   templateUrl: './new-spread.component.html',
   styleUrls: ['./new-spread.component.css']
 })
-export class NewSpreadComponent implements OnInit {
+export class NewSpreadComponent implements OnInit, OnDestroy {
   readingId: number | null = null;
   slots: SlotCard[] = [
     { position_number: 1, card: null, isReversed: false, selectedTagIds: [] },
@@ -31,8 +54,23 @@ export class NewSpreadComponent implements OnInit {
   ];
   readingDetail: SpreadReadingDetail | null = null;
 
-  /** 自動抽牌中 */
+  /** 自動抽牌中（含儀式與 API 紀錄） */
   autoDrawing = false;
+
+  /**
+   * 自動抽牌儀式階段：idle 關閉覆蓋層；shuffle→cut→arrange→pick→submitting
+   */
+  autoRitualPhase: 'idle' | 'shuffle' | 'cut' | 'arrange' | 'pick' | 'submitting' = 'idle';
+  /** 儀式用：洗牌後取前 N 張背面朝上供選 */
+  ritualDeck: TarotCard[] = [];
+  /** 使用者已選的牌（依序對應第 1～3 張位置） */
+  ritualSelected: TarotCard[] = [];
+  private shuffleEndTimer: ReturnType<typeof setTimeout> | null = null;
+  private shuffleStartTimer: ReturnType<typeof setTimeout> | null = null;
+  /** 進入洗牌步驟時先短暫停住，之後才開始洗 */ 
+  shuffleAnimationStarted = false;
+  /** 切牌動畫是否已觸發 */
+  cutDeckAnimated = false;
   /** 手動選牌：正在選的格子 1|2|3 */
   manualSlot: 1 | 2 | 3 | null = null;
   /** 手動選牌步驟：先選花色 → 選牌 → 選正逆位 */
@@ -61,6 +99,9 @@ export class NewSpreadComponent implements OnInit {
   ];
   selectedTheme = 'overall';
 
+  /** 洗牌動畫用牌位：約 32 張，散亂堆疊（與參考圖類似） */
+  readonly shuffleVisualSlots: ShuffleVisualSlot[] = NewSpreadComponent.buildMessyShuffleSlots();
+
   constructor(
     private spreadService: SpreadService,
     private tarotCardService: TarotCardService,
@@ -73,28 +114,132 @@ export class NewSpreadComponent implements OnInit {
     this.loadInitialReading();
   }
 
-  /** 進入頁面時：若有 query readingId 則載入該筆；否則載入今日牌陣 */
+  ngOnDestroy(): void {
+    this.clearRitualTimers();
+  }
+
+  /** 主按鈕：儀式進行中 */
+  get autoRitualInProgress(): boolean {
+    return this.autoRitualPhase !== 'idle' && this.autoRitualPhase !== 'submitting';
+  }
+
+  get ritualPickStepLabel(): string {
+    const n = this.ritualSelected.length + 1;
+    if (n > 3) return '已完成';
+    return `第 ${n} 張`;
+  }
+
+  getRitualCardBackUrl(): string {
+    return this.tarotCardService.getCoverImagePath();
+  }
+
+  /** 每張牌略不同的週期與相位，洗牌感較自然 */
+  shuffleCardAnim(idx: number): { duration: string; delay: string } {
+    const d = 5.4 + (idx % 19) * 0.24;
+    const del = -((idx * 0.2) % 4.8);
+    return { duration: `${d.toFixed(2)}s`, delay: `${del.toFixed(2)}s` };
+  }
+
+  trackByShuffleIdx(_i: number, _s: ShuffleVisualSlot): number {
+    return _i;
+  }
+
+  /** 0–1 決定性雜湊（同 index 每次畫面一致） */
+  private static shuffleHash01(n: number): number {
+    const x = Math.sin(n * 127.1 + 311.7) * 43758.5453123;
+    return x - Math.floor(x);
+  }
+
+  /**
+   * 內圈密集核心 + 中圈 + 外圈較散，角度與位移隨機，z 交錯疊放
+   */
+  private static buildMessyShuffleSlots(): ShuffleVisualSlot[] {
+    const out: ShuffleVisualSlot[] = [];
+    const count = 46;
+    const baseW = 46;
+    const baseH = 70;
+
+    for (let i = 0; i < count; i++) {
+      const u = NewSpreadComponent.shuffleHash01(i);
+      const v = NewSpreadComponent.shuffleHash01(i + 17);
+      const w = NewSpreadComponent.shuffleHash01(i + 29);
+      const jx = NewSpreadComponent.shuffleHash01(i + 41);
+      const jy = NewSpreadComponent.shuffleHash01(i + 53);
+
+      let minR: number;
+      let maxR: number;
+      /* 半徑略縮、抖動略减 → 整體更密集 */
+      if (u < 0.42) {
+        minR = 0;
+        maxR = 38;
+      } else if (u < 0.72) {
+        minR = 20;
+        maxR = 86;
+      } else {
+        minR = 62;
+        maxR = 128;
+      }
+
+      const radius = minR + v * (maxR - minR);
+      const theta = w * Math.PI * 2;
+      let dx = Math.cos(theta) * radius;
+      let dy = Math.sin(theta) * radius;
+      dx += (jx - 0.5) * 28;
+      dy += (jy - 0.5) * 28;
+
+      const tilt = NewSpreadComponent.shuffleHash01(i + 61) * 360;
+      const z = 3 + Math.floor(NewSpreadComponent.shuffleHash01(i + 73) * 52);
+      const sc = 0.72 + NewSpreadComponent.shuffleHash01(i + 89) * 0.38;
+      const wPx = Math.round(baseW * sc);
+      const hPx = Math.round(baseH * sc);
+
+      const jx1 = (NewSpreadComponent.shuffleHash01(i + 101) - 0.5) * 16;
+      const jy1 = (NewSpreadComponent.shuffleHash01(i + 113) - 0.5) * 16;
+      const jx2 = (NewSpreadComponent.shuffleHash01(i + 127) - 0.5) * 14;
+      const jy2 = (NewSpreadComponent.shuffleHash01(i + 139) - 0.5) * 14;
+      const jx3 = (NewSpreadComponent.shuffleHash01(i + 171) - 0.5) * 20;
+      const jy3 = (NewSpreadComponent.shuffleHash01(i + 181) - 0.5) * 20;
+      const swing1 = 1 + NewSpreadComponent.shuffleHash01(i + 151) * 2.6;
+      const swing2 = 0.8 + NewSpreadComponent.shuffleHash01(i + 163) * 2.2;
+      const swing3 = 1.2 + NewSpreadComponent.shuffleHash01(i + 193) * 3.1;
+
+      out.push({
+        dx,
+        dy,
+        tilt,
+        z,
+        w: wPx,
+        h: hPx,
+        jx1,
+        jy1,
+        jx2,
+        jy2,
+        jx3,
+        jy3,
+        swing1,
+        swing2,
+        swing3
+      });
+    }
+
+    return out;
+  }
+
+  /**
+   * 進入頁面時：僅在有 query readingId 時載入該筆。
+   * 預設為空白新牌陣（同一天可多次抽牌，不再自動載入「今日唯一一筆」）。
+   */
   private loadInitialReading(): void {
     const readingId = this.route.snapshot.queryParamMap.get('readingId');
-    if (readingId) {
-      const id = +readingId;
-      if (!isNaN(id)) {
-        this.spreadService.getSpreadReading(id).subscribe({
-          next: (res: any) => this.applyReadingDetail(res.data ?? res),
-          error: () => {}
-        });
-        return;
-      }
+    if (!readingId) {
+      return;
     }
-    this.spreadService.getTodayReading().subscribe({
-      next: (res: any) => {
-        const data = res.data ?? res;
-        if (data?.reading_date && data.reading_date !== getTodayDateStringInTaipei()) {
-          // 回傳的不是「今天」的紀錄（例如時區差異），不套用，顯示空白牌陣
-          return;
-        }
-        this.applyReadingDetail(data);
-      },
+    const id = +readingId;
+    if (isNaN(id)) {
+      return;
+    }
+    this.spreadService.getSpreadReading(id).subscribe({
+      next: (res: any) => this.applyReadingDetail(res.data ?? res),
       error: () => {}
     });
   }
@@ -164,33 +309,20 @@ export class NewSpreadComponent implements OnInit {
     return this.allSlotsFilled && this.readingDetail != null;
   }
 
-  /** 今日牌陣（依 reading_date） */
-  get isTodayReading(): boolean {
-    const d = this.readingDetail?.reading_date ?? getTodayDateStringInTaipei();
-    return d === getTodayDateStringInTaipei();
-  }
-
   get hasAnyCardDrawn(): boolean {
     return this.slots.some(s => s.card != null);
   }
 
   /**
-   * 頂部顯示 About My Day + 已抽牌：今日已有紀錄且至少已抽一張
+   * 頂部顯示牌陣摘要：目前這筆紀錄至少已抽一張時（不限是否「今日」）
    */
   get showTopAboutMyDay(): boolean {
-    return (
-      this.readingId != null &&
-      this.readingDetail != null &&
-      this.isTodayReading &&
-      this.hasAnyCardDrawn
-    );
+    return this.readingId != null && this.readingDetail != null && this.hasAnyCardDrawn;
   }
 
   /** 繼續抽牌區標題 */
   get continueSectionTitle(): string {
-    return this.showTopAboutMyDay && !this.allSlotsFilled
-      ? '繼續完成今日牌陣'
-      : 'Start My Day';
+    return this.showTopAboutMyDay && !this.allSlotsFilled ? '繼續完成此筆牌陣' : 'Start My Day';
   }
 
   /** 已抽至少一張後鎖定主題；僅建立紀錄尚未抽牌時仍可改 */
@@ -246,48 +378,189 @@ export class NewSpreadComponent implements OnInit {
     });
   }
 
-  /** 自動抽牌：建立牌陣 → 隨機三張 → 依序紀錄 → 顯示 About My Day */
+  /**
+   * 自動抽牌：建立牌陣 → 儀式（洗牌 → 切牌 → 展牌 → 自選三張）→ 紀錄
+   */
   autoDraw(): void {
-    if (this.hasAnyCardDrawn && this.isTodayReading) {
-      this.errorMessage = '今日已有抽牌紀錄，請用手動抽牌補滿空位，或使用「自動抽牌」於尚未抽牌時。';
+    if (this.hasAnyCardDrawn) {
+      this.errorMessage =
+        '此筆牌陣已開始抽牌，請用手動方式補滿空位。若要全新再抽一組，請點「開始全新牌陣」或選單的 New Spread。';
       return;
     }
     this.errorMessage = '';
     this.autoDrawing = true;
+    this.autoRitualPhase = 'shuffle';
+    this.ritualSelected = [];
+    this.ritualDeck = [];
+    this.cutDeckAnimated = false;
+    this.clearRitualTimers();
+
     this.spreadService.createSpreadReading(this.selectedTheme).subscribe({
       next: (res: any) => {
         const id = res.data?.id ?? res.id;
         if (!id) {
-          this.autoDrawing = false;
-          this.errorMessage = '無法建立牌陣';
+          this.resetAutoRitualOnError('無法建立牌陣');
           return;
         }
         this.readingId = id;
-        this.tarotCardService.getRandomCards(3).subscribe({
-          next: (randRes: any) => {
-            const cards: TarotCard[] = randRes.data ?? randRes ?? [];
-            if (cards.length < 3) {
-              this.autoDrawing = false;
-              this.errorMessage = '隨機牌數不足';
+        this.fetchAllTarotCards$().subscribe({
+          next: all => {
+            if (all.length < 3) {
+              this.resetAutoRitualOnError('牌組資料不足，無法進行儀式');
               return;
             }
-            this.addCardsThenRefresh(id, [
-              { position: 1, card: cards[0], isReversed: Math.random() < 0.5 },
-              { position: 2, card: cards[1], isReversed: Math.random() < 0.5 },
-              { position: 3, card: cards[2], isReversed: Math.random() < 0.5 }
-            ]);
+            const shuffled = this.shuffleArray(all);
+            // 可選牌池控制在較多但不易超出版面的張數
+            const fanSize = Math.min(28, shuffled.length);
+            this.ritualDeck = shuffled.slice(0, fanSize);
+            this.scheduleShuffleEnd();
           },
           error: () => {
-            this.autoDrawing = false;
-            this.errorMessage = '取得隨機牌失敗';
+            this.resetAutoRitualOnError('載入牌組失敗');
           }
         });
       },
       error: () => {
-        this.autoDrawing = false;
-        this.errorMessage = '建立牌陣失敗';
+        this.resetAutoRitualOnError('建立牌陣失敗');
       }
     });
+  }
+
+  /** 載入全部塔羅牌（含分頁）供儀式洗牌用 */
+  private fetchAllTarotCards$() {
+    return this.tarotCardService.getAllCards({ per_page: 100, page: 1 }).pipe(
+      switchMap((res: any) => {
+        const first = (res.data ?? []) as TarotCard[];
+        const meta = res.meta;
+        const lastPage = meta?.last_page ?? 1;
+        if (lastPage <= 1) {
+          return of(first);
+        }
+        const pageCalls = [];
+        for (let p = 2; p <= lastPage; p++) {
+          pageCalls.push(this.tarotCardService.getAllCards({ per_page: 100, page: p }));
+        }
+        return forkJoin(pageCalls).pipe(
+          map((pages: any[]) => {
+            let acc = [...first];
+            pages.forEach(r => {
+              acc = acc.concat((r.data ?? []) as TarotCard[]);
+            });
+            return acc;
+          })
+        );
+      })
+    );
+  }
+
+  private shuffleArray<T>(arr: T[]): T[] {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  private clearRitualTimers(): void {
+    if (this.shuffleStartTimer != null) {
+      clearTimeout(this.shuffleStartTimer);
+      this.shuffleStartTimer = null;
+    }
+    if (this.shuffleEndTimer != null) {
+      clearTimeout(this.shuffleEndTimer);
+      this.shuffleEndTimer = null;
+    }
+  }
+
+  private scheduleShuffleEnd(): void {
+    this.clearRitualTimers();
+    this.shuffleAnimationStarted = false;
+    this.shuffleStartTimer = setTimeout(() => {
+      this.shuffleStartTimer = null;
+      if (this.autoRitualPhase === 'shuffle') {
+        this.shuffleAnimationStarted = true;
+      }
+    }, 500);
+    const minMs = 7000;
+    this.shuffleEndTimer = setTimeout(() => {
+      this.shuffleEndTimer = null;
+      if (this.autoRitualPhase !== 'shuffle') {
+        return;
+      }
+      this.autoRitualPhase = 'cut';
+    }, minMs);
+  }
+
+  private resetAutoRitualOnError(msg: string): void {
+    this.clearRitualTimers();
+    this.autoDrawing = false;
+    this.autoRitualPhase = 'idle';
+    this.shuffleAnimationStarted = false;
+    this.ritualDeck = [];
+    this.ritualSelected = [];
+    this.cutDeckAnimated = false;
+    this.errorMessage = msg;
+  }
+
+  /** 取消儀式（保留已建立的牌陣，可改用手動抽牌） */
+  cancelAutoRitual(): void {
+    if (this.autoRitualPhase === 'idle' || this.autoRitualPhase === 'submitting') {
+      return;
+    }
+    this.clearRitualTimers();
+    this.autoRitualPhase = 'idle';
+    this.autoDrawing = false;
+    this.shuffleAnimationStarted = false;
+    this.ritualDeck = [];
+    this.ritualSelected = [];
+    this.cutDeckAnimated = false;
+  }
+
+  /** 步驟 2：使用者點擊完成切牌 */
+  onCutDeckClick(): void {
+    if (this.autoRitualPhase !== 'cut' || this.cutDeckAnimated) {
+      return;
+    }
+    this.cutDeckAnimated = true;
+    setTimeout(() => {
+      if (this.autoRitualPhase === 'cut') {
+        this.autoRitualPhase = 'pick';
+      }
+      this.cutDeckAnimated = false;
+    }, 600);
+  }
+
+  isRitualCardPicked(card: TarotCard): boolean {
+    return this.ritualSelected.some(c => c.id === card.id);
+  }
+
+  /** 步驟 4：點選一張背面牌 */
+  onRitualCardPick(card: TarotCard): void {
+    if (this.autoRitualPhase !== 'pick') {
+      return;
+    }
+    if (this.ritualSelected.length >= 3) {
+      return;
+    }
+    if (this.isRitualCardPicked(card)) {
+      return;
+    }
+    this.ritualSelected = [...this.ritualSelected, card];
+    if (this.ritualSelected.length === 3) {
+      const id = this.readingId;
+      if (!id) {
+        this.resetAutoRitualOnError('無法紀錄牌陣');
+        return;
+      }
+      this.autoRitualPhase = 'submitting';
+      const items = this.ritualSelected.map((c, i) => ({
+        position: (i + 1) as 1 | 2 | 3,
+        card: c,
+        isReversed: Math.random() < 0.5
+      }));
+      this.addCardsThenRefresh(id, items);
+    }
   }
 
   private addCardsThenRefresh(
@@ -300,6 +573,9 @@ export class NewSpreadComponent implements OnInit {
       done++;
       if (done === total) {
         this.autoDrawing = false;
+        this.autoRitualPhase = 'idle';
+        this.ritualDeck = [];
+        this.ritualSelected = [];
         this.refreshReading(rid);
       }
     };
@@ -308,6 +584,7 @@ export class NewSpreadComponent implements OnInit {
         next: () => onFinish(),
         error: () => {
           this.autoDrawing = false;
+          this.autoRitualPhase = 'idle';
           this.errorMessage = `紀錄第 ${position} 張牌失敗`;
         }
       });

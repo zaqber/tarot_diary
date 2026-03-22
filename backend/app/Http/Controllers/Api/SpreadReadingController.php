@@ -29,20 +29,20 @@ class SpreadReadingController extends Controller
         ]);
         $userId = $request->user()->id;
         $theme = (string) $request->input('theme', 'overall');
-        [$reading, $wasCreated] = $this->service->findOrCreateTodayReading($userId, $theme);
+        $reading = $this->service->create($userId, $theme);
         $payload = [
             'id' => $reading->id,
             'spread_type_id' => $reading->spread_type_id,
             'theme' => $reading->theme,
             'theme_label_zh' => SpreadReadingService::themeLabel($reading->theme ?? 'overall'),
             'reading_date' => $reading->reading_date?->toDateString(),
-            'reused_today' => ! $wasCreated,
+            'reading_time' => $reading->reading_time?->toIso8601String(),
         ];
 
         return $this->successResponse(
             $payload,
-            $wasCreated ? '牌陣建立成功' : '沿用今日既有牌陣',
-            $wasCreated ? 201 : 200
+            '牌陣建立成功',
+            201
         );
     }
 
@@ -126,6 +126,7 @@ class SpreadReadingController extends Controller
             return [
                 'id' => $reading->id,
                 'reading_date' => $reading->reading_date?->toDateString(),
+                'reading_time' => $reading->reading_time?->toIso8601String(),
                 'theme' => $theme,
                 'theme_label_zh' => SpreadReadingService::themeLabel($theme),
                 'spread_cards' => $reading->spreadCards->sortBy('position_number')->map(function ($sc) {

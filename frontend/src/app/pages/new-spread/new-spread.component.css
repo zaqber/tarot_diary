@@ -95,6 +95,23 @@
   max-width: 560px;
 }
 
+.hint-new-session {
+  font-size: 0.85rem;
+  color: #555;
+  margin-bottom: 16px;
+  max-width: 640px;
+}
+
+.inline-link {
+  color: #029fe7;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.inline-link:hover {
+  text-decoration: underline;
+}
+
 .btn {
   background: #fff;
   color: #4a4a4a;
@@ -632,5 +649,470 @@
 
 .ai-footnote a {
   color: #029fe7;
+}
+
+/* ========== 自動抽牌儀式覆蓋層 ========== */
+.auto-ritual-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: linear-gradient(160deg, #0f172a 0%, #1e293b 45%, #312e81 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 72px 20px 32px;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.ritual-cancel {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 10001;
+  padding: 10px 18px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.ritual-cancel:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.ritual-panel {
+  width: 100%;
+  max-width: 480px;
+  text-align: center;
+  color: #e2e8f0;
+}
+
+.ritual-panel-wide {
+  max-width: min(920px, 100%);
+  overflow: visible;
+}
+
+.ritual-panel-cut {
+  cursor: pointer;
+  outline: none;
+}
+
+.ritual-panel-cut:focus-visible {
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.6);
+  border-radius: 12px;
+}
+
+.ritual-step-badge {
+  display: inline-block;
+  margin: 0 0 12px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(56, 189, 248, 0.2);
+  color: #7dd3fc;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.ritual-title {
+  margin: 0 0 16px;
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #f8fafc;
+  letter-spacing: 0.02em;
+}
+
+.ritual-instruction {
+  margin: 0 0 24px;
+  font-size: 1rem;
+  line-height: 1.65;
+  color: #cbd5e1;
+  max-width: 42em;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.ritual-instruction-em strong {
+  color: #fef08a;
+}
+
+.ritual-footnote {
+  margin: 28px 0 0;
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+.ritual-hint-click {
+  margin: 20px 0 0;
+  font-size: 0.95rem;
+  color: #7dd3fc;
+  font-weight: 600;
+  animation: ritualPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes ritualPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+/* 洗牌動畫：參考實拍——深「桌布」、牌背圖、散亂堆疊與隨機角度 */
+.shuffle-stage {
+  min-height: min(58vh, 500px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 16px 0 24px;
+  padding: 12px;
+}
+
+.shuffle-mat {
+  position: relative;
+  width: min(94vw, 420px);
+  height: min(94vw, 420px);
+  max-width: 100%;
+  margin: 0 auto;
+  border-radius: 14px;
+  background: transparent;
+  box-shadow: none;
+  overflow: hidden;
+  animation: shuffleMatBreathe 6.4s ease-in-out infinite;
+}
+
+@keyframes shuffleMatBreathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.015);
+  }
+}
+
+.shuffle-stack-inner {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 50%;
+  animation: shuffleClockwisePulse 8.8s ease-in-out infinite;
+  animation-play-state: paused;
+  animation-fill-mode: both;
+}
+
+/* 單向展開：起手更聚集，之後越洗越攤開 */
+.shuffle-spread-grow {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 50%;
+  transform: scale(0.64);
+}
+
+.shuffle-mat.shuffle-mat-active .shuffle-spread-grow {
+  animation: shuffleSpreadGrow 6.2s cubic-bezier(0.15, 0.7, 0.2, 1) forwards;
+}
+
+@keyframes shuffleSpreadGrow {
+  0% {
+    transform: scale(0.64);
+  }
+  35% {
+    transform: scale(0.8);
+  }
+  68% {
+    transform: scale(0.93);
+  }
+  100% {
+    transform: scale(1.06);
+  }
+}
+
+/* 同為順時針，但各段角速度不同（忽快忽慢） */
+@keyframes shuffleClockwisePulse {
+  0% {
+    transform: rotate(0deg);
+  }
+  16% {
+    transform: rotate(46deg);
+  }
+  29% {
+    transform: rotate(132deg);
+  }
+  43% {
+    transform: rotate(184deg);
+  }
+  58% {
+    transform: rotate(276deg);
+  }
+  74% {
+    transform: rotate(318deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.shuffle-card {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  box-sizing: border-box;
+  background-image: url('../../../assets/images/tarot_cards/0.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border: 2px solid rgba(255, 255, 255, 0.92);
+  border-radius: 3px;
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.55),
+    0 1px 0 rgba(255, 255, 255, 0.15) inset;
+  transform-origin: 50% 50%;
+  transform: translate(
+      calc(-50% + (var(--dx) * 0.32)),
+      calc(-50% + (var(--dy) * 0.32))
+    )
+    rotate(calc(var(--tilt) * 0.16));
+  animation-name: messyShuffleWobble;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-play-state: paused;
+  animation-fill-mode: both;
+  will-change: transform;
+}
+
+.shuffle-mat.shuffle-mat-active .shuffle-stack-inner,
+.shuffle-mat.shuffle-mat-active .shuffle-card {
+  animation-play-state: running;
+}
+
+/* 更像手洗：節點變多、角度與距離在循環中持續變化 */
+@keyframes messyShuffleWobble {
+  0%,
+  100% {
+    transform: translate(
+        calc(-50% + (var(--dx) * 0.32)),
+        calc(-50% + (var(--dy) * 0.32))
+      )
+      rotate(calc(var(--tilt) * 0.16));
+  }
+  14% {
+    transform: translate(
+        calc(-50% + (var(--dx) * 0.72) + var(--jx1)),
+        calc(-50% + (var(--dy) * 0.68) - var(--jy2))
+      )
+      rotate(calc((var(--tilt) * 0.16) + (var(--swing1) * 0.22)));
+  }
+  28% {
+    transform: translate(
+        calc(-50% + (var(--dx) * 0.86) + var(--jx1)),
+        calc(-50% + (var(--dy) * 0.86) + var(--jy1))
+      )
+      rotate(calc((var(--tilt) * 0.16) + (var(--swing1) * 0.3)));
+  }
+  43% {
+    transform: translate(
+        calc(-50% + (var(--dx) * 0.78) - var(--jx3)),
+        calc(-50% + (var(--dy) * 0.84) + var(--jy3))
+      )
+      rotate(calc((var(--tilt) * 0.16) - (var(--swing3) * 0.3)));
+  }
+  57% {
+    transform: translate(
+        calc(-50% + (var(--dx) * 0.66) + var(--jx2)),
+        calc(-50% + (var(--dy) * 0.66) + var(--jy2))
+      )
+      rotate(calc((var(--tilt) * 0.16) - (var(--swing2) * 0.3)));
+  }
+  71% {
+    transform: translate(
+        calc(-50% + (var(--dx) * 0.88) + var(--jx3)),
+        calc(-50% + (var(--dy) * 0.76) - var(--jy1))
+      )
+      rotate(calc((var(--tilt) * 0.16) + (var(--swing3) * 0.25)));
+  }
+  86% {
+    transform: translate(
+        calc(-50% + (var(--dx) * 0.7) - var(--jx1)),
+        calc(-50% + (var(--dy) * 0.8) + var(--jy2))
+      )
+      rotate(calc((var(--tilt) * 0.16) - (var(--swing1) * 0.22)));
+  }
+}
+
+/* 切牌 */
+.cut-deck {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 2px;
+  margin: 40px auto 8px;
+  min-height: 100px;
+}
+
+.cut-pile {
+  width: 64px;
+  height: 96px;
+  border-radius: 8px;
+  background-image: url('../../../assets/images/tarot_cards/0.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.92);
+  transition: transform 0.55s cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+
+.cut-deck-split .cut-pile-left {
+  transform: translateX(-42px) rotate(-10deg);
+}
+
+.cut-deck-split .cut-pile-right {
+  transform: translateX(42px) rotate(10deg);
+}
+
+/* 展牌／選牌扇形 */
+.ritual-fan {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  flex-wrap: nowrap;
+  min-height: 250px;
+  padding: 36px 8px 20px;
+  margin: 0 auto;
+  max-width: 100%;
+  overflow: visible;
+}
+
+.ritual-fan-preview {
+  pointer-events: none;
+}
+
+.ritual-fan-pickable {
+  min-height: 280px;
+  padding-top: 8px;
+  padding-bottom: 28px;
+}
+
+.ritual-fan-card {
+  flex-shrink: 0;
+  width: 68px;
+  height: 104px;
+  margin-left: -42px;
+  border: none;
+  border-radius: 8px;
+  background-size: cover;
+  background-position: center;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease,
+    filter 0.2s ease;
+  transform-origin: 50% 100%;
+  transform: translateX(calc((var(--i) - var(--center, 7.5)) * 5px))
+    rotate(calc((var(--i) - var(--center, 7.5)) * 3.2deg));
+  position: relative;
+  z-index: calc(20 + var(--i));
+  padding: 0;
+}
+
+.ritual-fan-card:first-child {
+  margin-left: 0;
+}
+
+.ritual-fan-card-static {
+  pointer-events: none;
+}
+
+.ritual-fan-pickable .ritual-fan-card:hover:not(:disabled) {
+  filter: brightness(1.12);
+  box-shadow: 0 10px 28px rgba(56, 189, 248, 0.35);
+  z-index: 50;
+}
+
+.ritual-fan-card:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.ritual-fan-card-picked {
+  opacity: 0.35;
+  filter: grayscale(0.4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.ritual-next-btn {
+  margin-top: 28px;
+  background: linear-gradient(135deg, #0ea5e9, #6366f1) !important;
+  color: #fff !important;
+  border: none !important;
+  padding: 14px 36px !important;
+  font-size: 1rem !important;
+}
+
+.ritual-next-btn:hover {
+  filter: brightness(1.08);
+  color: #fff !important;
+}
+
+.ritual-spinner {
+  width: 44px;
+  height: 44px;
+  margin: 28px auto 0;
+  border: 3px solid rgba(255, 255, 255, 0.15);
+  border-top-color: #38bdf8;
+  border-radius: 50%;
+  animation: ritualSpin 0.75s linear infinite;
+}
+
+@keyframes ritualSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.hint-ritual {
+  margin-top: -12px;
+  margin-bottom: 20px;
+  font-size: 0.85rem;
+  color: #888;
+  max-width: 640px;
+}
+
+@media (max-width: 768px) {
+  .ritual-title {
+    font-size: 1.4rem;
+  }
+
+  .ritual-fan-card {
+    width: 56px;
+    height: 86px;
+    margin-left: -34px;
+    transform: translateX(calc((var(--i) - var(--center, 7.5)) * 4px))
+      rotate(calc((var(--i) - var(--center, 7.5)) * 2.6deg));
+  }
+
+  .ritual-fan {
+    min-height: 230px;
+    padding: 28px 6px 18px;
+  }
+
+  .ritual-fan-pickable {
+    min-height: 250px;
+    padding-bottom: 20px;
+  }
+
+  .shuffle-stage {
+    min-height: min(50vh, 420px);
+  }
+
+  .shuffle-mat {
+    width: min(96vw, 360px);
+    height: min(96vw, 360px);
+  }
 }
 

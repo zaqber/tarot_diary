@@ -59,7 +59,7 @@ class SpreadReadingService
     }
 
     /**
-     * 取得或建立「今日」三張牌陣：同一使用者同一天只應有一筆，避免 History 重複日期。
+     * @deprecated 已改為每日可多次抽牌；建立請改用 {@see create()}。保留供舊程式或手動維運參考。
      *
      * @return array{0: SpreadReading, 1: bool} [reading, wasCreated]
      */

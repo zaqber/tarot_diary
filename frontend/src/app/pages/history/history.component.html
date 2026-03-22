@@ -1,49 +1,104 @@
 <section class="section-1">
   <div class="container">
-    <h2 class="section-title">每日抽牌紀錄</h2>
-    <p class="section-description">查看過去的每日三張牌陣，點「查看」可看該日的牌面與標籤。</p>
+    <h2 class="section-title">抽牌紀錄</h2>
+    <p class="section-description">
+      查看每次三張牌陣。若<strong>今天抽了不只一組</strong>，可用左右切換；其餘與以往相同。
+    </p>
 
     <p *ngIf="loading" class="loading-msg">載入中…</p>
     <p *ngIf="errorMessage" class="error-msg">{{ errorMessage }}</p>
 
     <div *ngIf="!loading && !errorMessage && list.length === 0" class="empty-msg">
-      尚無抽牌紀錄，到 <a routerLink="/new_spread">New Spread</a> 抽今日的牌吧。
+      尚無抽牌紀錄，到 <a routerLink="/new_spread">New Spread</a> 開始抽牌吧。
     </div>
 
-    <!-- 今天：有紀錄顯示牌陣，沒紀錄顯示前往抽牌 -->
+    <!-- 今天：0 筆／1 筆／多筆（多筆才顯示左右切換） -->
     <div *ngIf="!loading" class="history-today-wrap">
       <h3 class="history-today-title">今天</h3>
+
       <a
-        *ngIf="todayReading"
-        [routerLink]="['/reading', todayReading.id]"
-        class="history-item history-item-today"
-      >
-        <span class="history-date">{{ formatDate(todayReading.reading_date) }}</span>
-        <span class="history-theme" *ngIf="todayReading.theme_label_zh">{{ todayReading.theme_label_zh }}</span>
-        <div class="history-card-images">
-          <img
-            *ngFor="let sc of getOrderedCards(todayReading.spread_cards)"
-            [src]="getCardImagePath(sc.card_id)"
-            [alt]="sc.card?.name_zh || sc.card?.name"
-            class="history-card-img"
-            [class.history-card-img-reversed]="sc.is_reversed"
-          />
-        </div>
-        <span class="history-cards">{{ getCardNames(todayReading) }}</span>
-        <span class="history-link">查看 →</span>
-      </a>
-      <a
-        *ngIf="!todayReading"
+        *ngIf="todayReadings.length === 0"
         routerLink="/new_spread"
         class="history-item history-item-today history-item-go-draw"
       >
         <span class="history-date">今天還沒抽牌</span>
         <span class="history-link">前往抽牌 →</span>
       </a>
+
+      <a
+        *ngIf="todayReadings.length === 1"
+        [routerLink]="['/reading', todayReadings[0].id]"
+        class="history-item history-item-today"
+      >
+        <span class="history-date">{{ formatDate(todayReadings[0].reading_date) }}</span>
+        <span class="history-theme" *ngIf="todayReadings[0].theme_label_zh">{{ todayReadings[0].theme_label_zh }}</span>
+        <div class="history-card-images">
+          <img
+            *ngFor="let sc of getOrderedCards(todayReadings[0].spread_cards)"
+            [src]="getCardImagePath(sc.card_id)"
+            [alt]="sc.card?.name_zh || sc.card?.name || ''"
+            class="history-card-img"
+            [class.history-card-img-reversed]="sc.is_reversed"
+          />
+        </div>
+        <span class="history-cards">{{ getCardNames(todayReadings[0]) }}</span>
+        <span class="history-link">查看 →</span>
+      </a>
+
+      <!-- 今天多筆：左右切換 -->
+      <div class="history-today-multi" *ngIf="todayReadings.length > 1">
+        <div class="history-carousel-toolbar history-today-toolbar">
+          <span class="history-count"
+            >今天 {{ todayCarouselIndex + 1 }}／{{ todayReadings.length }}</span
+          >
+          <span class="history-hint-nav">◀ 較舊 · 較新 ▶</span>
+        </div>
+        <div class="history-carousel history-carousel-today">
+          <button
+            type="button"
+            class="history-nav-btn"
+            (click)="todayGoOlder()"
+            [disabled]="!canTodayGoOlder"
+            aria-label="上一筆（較舊）"
+          >
+            ◀
+          </button>
+
+          <div class="history-carousel-slide" *ngIf="currentTodaySlide as slide">
+            <a [routerLink]="['/reading', slide.id]" class="history-slide-card history-item-today">
+              <p class="history-slide-datetime">
+                {{ formatDate(slide.reading_date) }} · {{ formatTodaySlideTime(slide) }}
+              </p>
+              <span class="history-slide-theme" *ngIf="slide.theme_label_zh">{{ slide.theme_label_zh }}</span>
+              <div class="history-card-images">
+                <img
+                  *ngFor="let sc of getOrderedCards(slide.spread_cards)"
+                  [src]="getCardImagePath(sc.card_id)"
+                  [alt]="sc.card?.name_zh || sc.card?.name || ''"
+                  class="history-card-img"
+                  [class.history-card-img-reversed]="sc.is_reversed"
+                />
+              </div>
+              <span class="history-cards">{{ getCardNames(slide) }}</span>
+              <span class="history-link">查看 →</span>
+            </a>
+          </div>
+
+          <button
+            type="button"
+            class="history-nav-btn"
+            (click)="todayGoNewer()"
+            [disabled]="!canTodayGoNewer"
+            aria-label="下一筆（較新）"
+          >
+            ▶
+          </button>
+        </div>
+      </div>
     </div>
 
-    <!-- 過往紀錄：三天並排 -->
-    <div class="history-list" *ngIf="!loading && pastList.length > 0">
+    <!-- 過往：維持一筆一格網格 -->
+    <div class="history-list" *ngIf="!loading && !errorMessage && pastList.length > 0">
       <a
         *ngFor="let item of pastList"
         [routerLink]="['/reading', item.id]"
@@ -55,7 +110,7 @@
           <img
             *ngFor="let sc of getOrderedCards(item.spread_cards)"
             [src]="getCardImagePath(sc.card_id)"
-            [alt]="sc.card?.name_zh || sc.card?.name"
+            [alt]="sc.card?.name_zh || sc.card?.name || ''"
             class="history-card-img"
             [class.history-card-img-reversed]="sc.is_reversed"
           />
@@ -64,5 +119,9 @@
         <span class="history-link">查看 →</span>
       </a>
     </div>
+
+    <p class="history-quick-link" *ngIf="!loading && !errorMessage && list.length > 0">
+      <a routerLink="/new_spread">＋ 再抽一組新牌陣</a>
+    </p>
   </div>
 </section>
