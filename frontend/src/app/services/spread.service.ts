@@ -98,10 +98,16 @@ export class SpreadService {
   /**
    * 請 AI（後端預設 Gemini）依主題＋三張牌解牌
    */
-  requestAiInterpret(readingId: number, question?: string | null): Observable<{ data: SpreadReadingDetail }> {
-    const body: { question?: string } = {};
+  requestAiInterpret(
+    readingId: number,
+    question?: string | null,
+    topic?: string | null
+  ): Observable<{ data: SpreadReadingDetail }> {
+    const body: { question?: string; topic?: string } = {};
     const q = question?.trim();
     if (q) body.question = q;
+    const t = topic?.trim();
+    if (t) body.topic = t;
     return this.http.post<{ data: SpreadReadingDetail }>(
       `${this.apiUrl}/${readingId}/ai-interpret`,
       body

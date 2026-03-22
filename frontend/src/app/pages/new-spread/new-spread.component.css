@@ -637,6 +637,11 @@
   resize: vertical;
 }
 
+.ai-input {
+  min-height: 46px;
+  resize: none;
+}
+
 .ai-btn {
   margin-bottom: 12px;
 }

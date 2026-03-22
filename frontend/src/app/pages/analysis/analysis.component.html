@@ -1,134 +1,99 @@
-<!-- Section 1: Top 3 Keywords -->
-<section class="section-1">
+<section class="analysis-section">
   <div class="container">
-    <div class="info-box">
-      <h2 class="section-title">TOP3 KEYWORDs<br>Rank of the past {{ topKeywordsDays }} days</h2>
-      <p class="section-description">
-        過去 {{ topKeywordsDays }} 天抽牌中，出現次數最多的前 3 個關鍵字。
-      </p>
+    <h2 class="section-title">分析儀表板</h2>
+    <p class="section-description">統計區間：最近 {{ days }} 天</p>
 
-      <p *ngIf="loading" class="loading-msg">載入中…</p>
-      <p *ngIf="errorMessage" class="error-msg">{{ errorMessage }}</p>
+    <p *ngIf="loading" class="loading-msg">載入中…</p>
+    <p *ngIf="errorMessage" class="error-msg">{{ errorMessage }}</p>
 
-      <!-- Ranking Chart：左=第2名、中=第1名、右=第3名；同次數關鍵字並排 -->
-      <div class="ranking-chart" *ngIf="!loading && !errorMessage">
-        <div *ngIf="displaySlots.length === 0" class="empty-msg">尚無資料，多抽幾天牌後再來看吧。</div>
-        <div *ngFor="let slot of displaySlots" class="rank-item">
-          <div class="rank-bar-wrap">
-            <div
-              class="rank-bar"
-              [ngClass]="getRankClass(slot.rank)"
-              [style.background-color]="getGroupColor(slot.group)"
-            >
-              {{ slot.rank }}
+    <div class="analysis-grid" *ngIf="!loading && !errorMessage">
+      <!-- 1. 正逆位分析 -->
+      <article class="panel">
+        <h3 class="panel-title">正逆位分析</h3>
+        <div class="pie-wrap">
+          <div class="pie" [style.background]="orientationPieStyle()"></div>
+          <div class="legend">
+            <div class="legend-item"><span class="dot dot-upright"></span>正位：{{ orientation.upright_count }}</div>
+            <div class="legend-item"><span class="dot dot-reversed"></span>逆位：{{ orientation.reversed_count }}</div>
+            <div class="legend-item legend-total">總計：{{ orientation.total }}</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- 2. 最常出現的牌 TOP 5 -->
+      <article class="panel">
+        <h3 class="panel-title">最常出現的牌 TOP 5</h3>
+        <div class="top-cards" *ngIf="topCards.length > 0; else noTopCards">
+          <div class="top-card-item" *ngFor="let card of topCards; let i = index">
+            <span class="rank-badge">#{{ i + 1 }}</span>
+            <img [src]="getCardImagePath(card.card_id)" [alt]="card.name_zh || card.name" />
+            <div class="top-card-meta">
+              <strong>{{ card.name_zh || card.name }}</strong>
+              <span>出現 {{ card.count }} 次</span>
             </div>
           </div>
-          <h3 class="rank-label">{{ getGroupLabel(slot.group) }}</h3>
-          <span class="rank-count">出現 {{ getGroupCount(slot.group) }} 次</span>
         </div>
-      </div>
-    </div>
-  </div>
-</section>
+        <ng-template #noTopCards><p class="empty-msg">尚無資料</p></ng-template>
+      </article>
 
-<!-- Section 2: Filter Data -->
-<section class="section-2">
-  <div class="container">
-    <div class="filter-section">
-      <h2 class="filter-title">FILTER DATA</h2>
+      <!-- 3. 花色／大牌分布 -->
+      <article class="panel">
+        <h3 class="panel-title">花色／大牌分布</h3>
+        <div class="pie-wrap">
+          <div class="pie" [style.background]="distributionPieStyle()"></div>
+          <div class="legend">
+            <div class="legend-item" *ngFor="let d of distribution">
+              <span class="dot" [style.background]="d.color"></span>{{ d.label }}：{{ d.count }}
+            </div>
+          </div>
+        </div>
+      </article>
 
-      <div class="filter-buttons">
-        <button class="filter-btn">Date Range: 2026/01/05~2026/01/15</button>
-        <button class="filter-btn">Card Type: Ace of Wands</button>
-        <button class="filter-btn">Card: Ace of wands</button>
-      </div>
-
-      <!-- Data Table -->
-      <div class="data-table-wrapper">
-        <table class="data-table">
+      <!-- 4. 符合該日狀況的卡牌排行 -->
+      <article class="panel panel-wide">
+        <h3 class="panel-title">符合該日狀況的卡牌排行</h3>
+        <div *ngIf="selectedCardRanking.length === 0" class="empty-msg">尚無已點選標籤資料</div>
+        <table class="ranking-table" *ngIf="selectedCardRanking.length > 0">
           <thead>
             <tr>
-              <th class="service-name">Your Car Service</th>
-              <th class="time-cell">Time</th>
-              <th class="cost-cell">Cost Range</th>
-              <th></th>
+              <th>卡牌</th>
+              <th>被點選次數</th>
+              <th>涉及牌位數</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td class="service-name">Alternator Repair</td>
-              <td class="time-cell">60min</td>
-              <td class="cost-cell">$63.00 - $72.00</td>
-              <td class="time-cell">
-                <button class="book-btn">Book Now</button>
-              </td>
-            </tr>
-            <tr>
-              <td class="service-name">Brake Light Switch Replacement</td>
-              <td class="time-cell">60min</td>
-              <td class="cost-cell">$92.00 - $105.00</td>
-              <td class="time-cell">
-                <button class="book-btn">Book Now</button>
-              </td>
-            </tr>
-            <tr>
-              <td class="service-name">Replacement filters</td>
-              <td class="time-cell">80min</td>
-              <td class="cost-cell">$83.00 - $91.00</td>
-              <td class="time-cell">
-                <button class="book-btn">Book Now</button>
-              </td>
-            </tr>
-            <tr>
-              <td class="service-name">Battery, Starting and Charging Repair</td>
-              <td class="time-cell">70min</td>
-              <td class="cost-cell">$94.00 - $120.00</td>
-              <td class="time-cell">
-                <button class="book-btn">Book Now</button>
-              </td>
-            </tr>
-            <tr>
-              <td class="service-name">Car Door Lock Actuator Replacement</td>
-              <td class="time-cell">60min</td>
-              <td class="cost-cell">$379.00 - $390.00</td>
-              <td class="time-cell">
-                <button class="book-btn">Book Now</button>
-              </td>
-            </tr>
-            <tr>
-              <td class="service-name">Intake Manifold Gaskets Replacement</td>
-              <td class="time-cell">90min</td>
-              <td class="cost-cell">$231 .00 - $248.00</td>
-              <td class="time-cell">
-                <button class="book-btn">Book Now</button>
-              </td>
-            </tr>
-            <tr>
-              <td class="service-name">Car Battery Terminal Ends Replacement</td>
-              <td class="time-cell">90min</td>
-              <td class="cost-cell">$104.00 - $120.00</td>
-              <td class="time-cell">
-                <button class="book-btn">Book Now</button>
-              </td>
-            </tr>
-            <tr>
-              <td class="service-name">Cooling System Services</td>
-              <td class="time-cell">90min</td>
-              <td class="cost-cell">$83.00 - $91.00</td>
-              <td class="time-cell">
-                <button class="book-btn">Book Now</button>
-              </td>
+            <tr *ngFor="let row of selectedCardRanking">
+              <td>{{ row.name_zh || row.name }}</td>
+              <td>{{ row.selected_count }}</td>
+              <td>{{ row.hit_count }}</td>
             </tr>
           </tbody>
         </table>
-      </div>
-    </div>
-  </div>
-</section>
+      </article>
 
-<!-- Section 3: Matching Rate -->
-<section class="section-3">
-  <div class="container">
-    <h2 class="filter-title">MATCHING RATE</h2>
+      <!-- 5. 關鍵字隨時間變化 -->
+      <article class="panel panel-wide">
+        <h3 class="panel-title">關鍵字隨時間變化（最近 14 天）</h3>
+        <div *ngIf="trendSeries.length === 0" class="empty-msg">尚無已點選標籤資料</div>
+        <div class="trend-wrap" *ngIf="trendSeries.length > 0">
+          <div class="trend-row" *ngFor="let s of trendSeries">
+            <div class="trend-label">{{ s.name_zh || s.name }}</div>
+            <div class="trend-bars">
+              <div
+                class="trend-bar"
+                *ngFor="let v of trendWindowData(s)"
+                [title]="v + ' 次'"
+                [style.height]="trendBarHeight(v, s)"
+                [style.background]="s.color || '#7f8c8d'"
+              ></div>
+            </div>
+            <div class="trend-total">{{ s.total }}</div>
+          </div>
+          <div class="trend-dates">
+            <span *ngFor="let d of trendWindowLabels()">{{ formatTrendDate(d) }}</span>
+          </div>
+        </div>
+      </article>
+    </div>
   </div>
 </section>

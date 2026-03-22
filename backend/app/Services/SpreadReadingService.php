@@ -190,9 +190,13 @@ class SpreadReadingService
      * @param int $tagId
      * @return array ['selected' => bool, 'selected_tag_ids' => int[]]
      */
-    public function toggleSpreadCardTag(int $spreadReadingId, int $positionNumber, int $tagId): array
+    public function toggleSpreadCardTag(int $userId, int $spreadReadingId, int $positionNumber, int $tagId): array
     {
-        $spreadCard = SpreadCard::where('spread_reading_id', $spreadReadingId)
+        $reading = SpreadReading::where('id', $spreadReadingId)
+            ->where('user_id', $userId)
+            ->firstOrFail();
+
+        $spreadCard = SpreadCard::where('spread_reading_id', $reading->id)
             ->where('position_number', $positionNumber)
             ->firstOrFail();
         $existing = SpreadCardTagSelection::where('spread_card_id', $spreadCard->id)

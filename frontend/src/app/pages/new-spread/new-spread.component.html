@@ -320,6 +320,16 @@
 <section class="section-ai" *ngIf="showAboutMyDay">
   <div class="container">
     <h3 class="ai-section-title">AI 解牌</h3>
+    <label class="ai-label" for="ai-topic-new-spread">給 AI 的明確主題（選填）</label>
+    <input
+      id="ai-topic-new-spread"
+      class="ai-textarea ai-input"
+      [(ngModel)]="aiTopicDraft"
+      type="text"
+      maxlength="120"
+      placeholder="例如：關係修復、轉職方向、財務規劃"
+      [disabled]="aiInterpretLoading"
+    />
     <label class="ai-label" for="ai-q-new-spread">給 AI 的明確問題（選填）</label>
     <textarea
       id="ai-q-new-spread"

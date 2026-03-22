@@ -66,6 +66,7 @@ Route::prefix('spread-readings')->middleware('auth:sanctum')->group(function () 
 });
 
 Route::prefix('analysis')->middleware('auth:sanctum')->group(function () {
+    Route::get('/dashboard', [AnalysisController::class, 'dashboard']);
     Route::get('/top-keywords', [AnalysisController::class, 'topKeywords']);
 });
 
