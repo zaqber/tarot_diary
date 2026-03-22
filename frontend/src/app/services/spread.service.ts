@@ -8,6 +8,8 @@ export interface CreateSpreadResponse {
   id: number;
   spread_type_id: number;
   reading_date: string;
+  theme?: string;
+  theme_label_zh?: string;
 }
 
 export interface AddCardResponse {
@@ -27,8 +29,18 @@ export class SpreadService {
   /**
    * 建立一筆新的三張牌陣
    */
-  createSpreadReading(): Observable<{ data: CreateSpreadResponse }> {
-    return this.http.post<{ data: CreateSpreadResponse }>(this.apiUrl, {});
+  createSpreadReading(theme: string = 'overall'): Observable<{ data: CreateSpreadResponse }> {
+    return this.http.post<{ data: CreateSpreadResponse }>(this.apiUrl, { theme });
+  }
+
+  /** 尚未抽牌前可變更該筆牌陣主題 */
+  updateReadingTheme(readingId: number, theme: string): Observable<{
+    data: { theme: string; theme_label_zh: string };
+  }> {
+    return this.http.patch<{ data: { theme: string; theme_label_zh: string } }>(
+      `${this.apiUrl}/${readingId}/theme`,
+      { theme }
+    );
   }
 
   /**
@@ -81,11 +93,26 @@ export class SpreadService {
       { tag_id: tagId }
     );
   }
+
+  /**
+   * 請 AI（後端預設 Gemini）依主題＋三張牌解牌
+   */
+  requestAiInterpret(readingId: number, question?: string | null): Observable<{ data: SpreadReadingDetail }> {
+    const body: { question?: string } = {};
+    const q = question?.trim();
+    if (q) body.question = q;
+    return this.http.post<{ data: SpreadReadingDetail }>(
+      `${this.apiUrl}/${readingId}/ai-interpret`,
+      body
+    );
+  }
 }
 
 export interface SpreadReadingListItem {
   id: number;
   reading_date: string;
+  theme?: string;
+  theme_label_zh?: string;
   spread_cards: Array<{
     position_number: number;
     card_id: number;

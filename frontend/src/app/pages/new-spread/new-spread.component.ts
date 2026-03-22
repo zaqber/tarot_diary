@@ -47,6 +47,20 @@ export class NewSpreadComponent implements OnInit {
   loadingCards = false;
   errorMessage = '';
 
+  /** 給 AI 的選填提問 */
+  aiQuestionDraft = '';
+  /** 請求 AI 解牌中 */
+  aiInterpretLoading = false;
+
+  /** 抽牌主題（建立牌陣時寫入 DB） */
+  readonly themeOptions: Array<{ key: string; label: string }> = [
+    { key: 'overall', label: '整體' },
+    { key: 'love', label: '感情' },
+    { key: 'career', label: '事業' },
+    { key: 'finance', label: '財務' }
+  ];
+  selectedTheme = 'overall';
+
   constructor(
     private spreadService: SpreadService,
     private tarotCardService: TarotCardService,
@@ -96,6 +110,9 @@ export class NewSpreadComponent implements OnInit {
   private applyReadingDetail(detail: SpreadReadingDetail): void {
     this.readingDetail = detail;
     this.readingId = detail.id;
+    if (detail.theme) {
+      this.selectedTheme = detail.theme;
+    }
     this.slots = [1, 2, 3].map(pos => {
       const sc = detail.spread_cards?.find(c => c.position_number === pos);
       return {
@@ -105,6 +122,38 @@ export class NewSpreadComponent implements OnInit {
         selectedTagIds: sc?.selected_tag_ids ?? []
       };
     });
+    if (detail.ai_interpretation) {
+      this.aiQuestionDraft = detail.ai_question || '';
+    } else if (detail.ai_question) {
+      this.aiQuestionDraft = detail.ai_question;
+    }
+  }
+
+  formatAiTime(iso: string | null | undefined): string {
+    if (!iso) return '';
+    try {
+      return new Date(iso).toLocaleString('zh-TW', { dateStyle: 'medium', timeStyle: 'short' });
+    } catch {
+      return iso;
+    }
+  }
+
+  requestAiInterpret(): void {
+    if (this.readingId == null || !this.allSlotsFilled) return;
+    this.errorMessage = '';
+    this.aiInterpretLoading = true;
+    this.spreadService.requestAiInterpret(this.readingId, this.aiQuestionDraft || undefined).subscribe({
+      next: (res: any) => {
+        this.aiInterpretLoading = false;
+        this.applyReadingDetail(res.data ?? res);
+      },
+      error: (err: { error?: { message?: string } }) => {
+        this.aiInterpretLoading = false;
+        const msg = err.error?.message;
+        this.errorMessage =
+          typeof msg === 'string' ? msg : 'AI 解牌失敗，請確認後端已設定 GEMINI_API_KEY（與 AI_PROVIDER）';
+      }
+    });
   }
 
   get allSlotsFilled(): boolean {
@@ -113,6 +162,66 @@ export class NewSpreadComponent implements OnInit {
 
   get showAboutMyDay(): boolean {
     return this.allSlotsFilled && this.readingDetail != null;
+  }
+
+  /** 今日牌陣（依 reading_date） */
+  get isTodayReading(): boolean {
+    const d = this.readingDetail?.reading_date ?? getTodayDateStringInTaipei();
+    return d === getTodayDateStringInTaipei();
+  }
+
+  get hasAnyCardDrawn(): boolean {
+    return this.slots.some(s => s.card != null);
+  }
+
+  /**
+   * 頂部顯示 About My Day + 已抽牌：今日已有紀錄且至少已抽一張
+   */
+  get showTopAboutMyDay(): boolean {
+    return (
+      this.readingId != null &&
+      this.readingDetail != null &&
+      this.isTodayReading &&
+      this.hasAnyCardDrawn
+    );
+  }
+
+  /** 繼續抽牌區標題 */
+  get continueSectionTitle(): string {
+    return this.showTopAboutMyDay && !this.allSlotsFilled
+      ? '繼續完成今日牌陣'
+      : 'Start My Day';
+  }
+
+  /** 已抽至少一張後鎖定主題；僅建立紀錄尚未抽牌時仍可改 */
+  get themeLocked(): boolean {
+    return this.hasAnyCardDrawn;
+  }
+
+  selectTheme(key: string): void {
+    if (this.themeLocked) return;
+    this.selectedTheme = key;
+    if (this.readingId != null) {
+      this.spreadService.updateReadingTheme(this.readingId, key).subscribe({
+        next: (res: any) => {
+          const d = res.data ?? res;
+          if (this.readingDetail && d?.theme) {
+            this.readingDetail = {
+              ...this.readingDetail,
+              theme: d.theme,
+              theme_label_zh: d.theme_label_zh
+            };
+          }
+        },
+        error: () => {
+          this.errorMessage = '無法更新主題，請稍後再試';
+        }
+      });
+    }
+  }
+
+  get themeLabel(): string {
+    return this.themeOptions.find(t => t.key === this.selectedTheme)?.label ?? '整體';
   }
 
   private loadSuitOptions(): void {
@@ -139,9 +248,13 @@ export class NewSpreadComponent implements OnInit {
 
   /** 自動抽牌：建立牌陣 → 隨機三張 → 依序紀錄 → 顯示 About My Day */
   autoDraw(): void {
+    if (this.hasAnyCardDrawn && this.isTodayReading) {
+      this.errorMessage = '今日已有抽牌紀錄，請用手動抽牌補滿空位，或使用「自動抽牌」於尚未抽牌時。';
+      return;
+    }
     this.errorMessage = '';
     this.autoDrawing = true;
-    this.spreadService.createSpreadReading().subscribe({
+    this.spreadService.createSpreadReading(this.selectedTheme).subscribe({
       next: (res: any) => {
         const id = res.data?.id ?? res.id;
         if (!id) {
@@ -218,7 +331,7 @@ export class NewSpreadComponent implements OnInit {
     this.errorMessage = '';
     if (this.readingId == null) {
       this.autoDrawing = true;
-      this.spreadService.createSpreadReading().subscribe({
+      this.spreadService.createSpreadReading(this.selectedTheme).subscribe({
         next: (res: any) => {
           const id = res.data?.id ?? res.id;
           this.readingId = id ?? null;

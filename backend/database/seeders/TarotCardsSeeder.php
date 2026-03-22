@@ -14,6 +14,7 @@ class TarotCardsSeeder extends Seeder
     {
         // 獲取花色 ID
         $suits = DB::table('suits')->get()->keyBy('name_zh');
+        $minorZh = require __DIR__.'/data/minor_arcana_meanings_zh.php';
 
         $cards = [];
 
@@ -78,11 +79,12 @@ class TarotCardsSeeder extends Seeder
         ];
 
         foreach ($wandsCards as $card) {
+            $m = $minorZh['權杖'][$card['number']];
             $cards[] = array_merge($card, [
                 'card_type' => 'minor',
                 'suit_id' => $suits['權杖']->id,
-                'official_meaning_upright' => '',
-                'official_meaning_reversed' => '',
+                'official_meaning_upright' => $m['official_meaning_upright'],
+                'official_meaning_reversed' => $m['official_meaning_reversed'],
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -107,11 +109,12 @@ class TarotCardsSeeder extends Seeder
         ];
 
         foreach ($cupsCards as $card) {
+            $m = $minorZh['聖杯'][$card['number']];
             $cards[] = array_merge($card, [
                 'card_type' => 'minor',
                 'suit_id' => $suits['聖杯']->id,
-                'official_meaning_upright' => '',
-                'official_meaning_reversed' => '',
+                'official_meaning_upright' => $m['official_meaning_upright'],
+                'official_meaning_reversed' => $m['official_meaning_reversed'],
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -136,11 +139,12 @@ class TarotCardsSeeder extends Seeder
         ];
 
         foreach ($swordsCards as $card) {
+            $m = $minorZh['寶劍'][$card['number']];
             $cards[] = array_merge($card, [
                 'card_type' => 'minor',
                 'suit_id' => $suits['寶劍']->id,
-                'official_meaning_upright' => '',
-                'official_meaning_reversed' => '',
+                'official_meaning_upright' => $m['official_meaning_upright'],
+                'official_meaning_reversed' => $m['official_meaning_reversed'],
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -165,11 +169,12 @@ class TarotCardsSeeder extends Seeder
         ];
 
         foreach ($pentaclesCards as $card) {
+            $m = $minorZh['錢幣'][$card['number']];
             $cards[] = array_merge($card, [
                 'card_type' => 'minor',
                 'suit_id' => $suits['錢幣']->id,
-                'official_meaning_upright' => '',
-                'official_meaning_reversed' => '',
+                'official_meaning_upright' => $m['official_meaning_upright'],
+                'official_meaning_reversed' => $m['official_meaning_reversed'],
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);

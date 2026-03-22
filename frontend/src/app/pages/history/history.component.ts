@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { SpreadService, SpreadReadingListItem } from '../../services/spread.service';
 import { TarotCardService } from '../../services/tarot-card.service';
 import { getTodayDateStringInTaipei, formatDateDisplay } from '../../services/date.util';
+import { hasReadableSpreadCards } from '../../utils/spread-reading.util';
 
 @Component({
   selector: 'app-history',
@@ -43,7 +44,11 @@ export class HistoryComponent implements OnInit {
     this.errorMessage = '';
     this.spreadService.getReadingList({ per_page: 30, page: 1 }).subscribe({
       next: (res: any) => {
-        this.list = res.data ?? res ?? [];
+        const raw = res.data ?? res ?? [];
+        const arr = Array.isArray(raw) ? raw : [];
+        this.list = arr.filter((item: SpreadReadingListItem) =>
+          hasReadableSpreadCards(item.spread_cards)
+        );
         this.loading = false;
       },
       error: () => {

@@ -19,6 +19,7 @@
         class="history-item history-item-today"
       >
         <span class="history-date">{{ formatDate(todayReading.reading_date) }}</span>
+        <span class="history-theme" *ngIf="todayReading.theme_label_zh">{{ todayReading.theme_label_zh }}</span>
         <div class="history-card-images">
           <img
             *ngFor="let sc of getOrderedCards(todayReading.spread_cards)"
@@ -49,6 +50,7 @@
         class="history-item"
       >
         <span class="history-date">{{ formatDate(item.reading_date) }}</span>
+        <span class="history-theme" *ngIf="item.theme_label_zh">{{ item.theme_label_zh }}</span>
         <div class="history-card-images">
           <img
             *ngFor="let sc of getOrderedCards(item.spread_cards)"

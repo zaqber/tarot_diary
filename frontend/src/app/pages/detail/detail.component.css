@@ -193,6 +193,11 @@
   color: #666;
 }
 
+.meaning-empty {
+  color: #999;
+  font-style: italic;
+}
+
 .suit-info {
   font-size: 1rem;
   line-height: 1.8;

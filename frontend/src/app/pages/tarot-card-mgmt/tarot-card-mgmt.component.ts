@@ -211,8 +211,9 @@ export class TarotCardMgmtComponent implements OnInit, OnDestroy {
 
   getMeaning(card: TarotCard): string {
     const isUpright = this.isCardUpright(card.id);
-    return isUpright ?
-      card.official_meaning.upright :
-      card.official_meaning.reversed;
+    const raw = isUpright
+      ? card.official_meaning.upright
+      : card.official_meaning.reversed;
+    return (raw && String(raw).trim()) ? String(raw) : '（尚無官方牌義）';
   }
 }

@@ -14,16 +14,21 @@ class SpreadReading extends Model
     protected $fillable = [
         'user_id',
         'spread_type_id',
+        'theme',
         'reading_date',
         'reading_time',
         'question',
         'overall_note',
+        'ai_question',
+        'ai_interpretation',
+        'ai_generated_at',
         'is_reviewed',
     ];
 
     protected $casts = [
         'reading_date' => 'date',
         'reading_time' => 'datetime',
+        'ai_generated_at' => 'datetime',
         'is_reviewed' => 'boolean',
     ];
 

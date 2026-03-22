@@ -1,18 +1,92 @@
-<!-- Section 1: Start My Day（尚未抽完三張時才顯示） -->
-<section class="section-1" *ngIf="!showAboutMyDay">
+<!-- 頂部：今日已有紀錄且已抽至少一張 → About My Day + 已抽牌面 -->
+<section class="section-top-about" *ngIf="showTopAboutMyDay">
   <div class="container">
     <p class="page-date">{{ displayDate }}</p>
-    <h2 class="section-title">Start My Day</h2>
+    <p class="theme-summary" *ngIf="readingDetail?.theme_label_zh">主題：{{ readingDetail?.theme_label_zh }}</p>
+    <h2 class="section-title section-title-about">About My Day</h2>
 
-    <div class="button-group">
-      <button type="button" class="btn" (click)="autoDraw()" [disabled]="autoDrawing">
+    <div class="card-grid about-day-top-grid">
+      <div *ngFor="let slot of slots" class="card-wrapper">
+        <ng-container *ngIf="slot.card">
+          <div
+            class="card"
+            [class.card-reversed]="slot.isReversed"
+            [style.background-image]="'url(' + getCardImageUrl(slot.card, false) + ')'"
+          ></div>
+          <div class="card-info">
+            <h4 class="card-title">
+              {{ slot.card?.name || slot.card?.name_zh || '—' }}{{ slot.isReversed ? '（逆位）' : '' }}
+            </h4>
+            <div class="tag-group tag-group-bottom" *ngIf="allSlotsFilled">
+              <button
+                *ngFor="let tag of getActiveTags(slot.card)"
+                type="button"
+                class="tag tag-clickable"
+                [style.background-color]="getRepeatedTagNames().has(tag.name_zh) ? (tag.color || '#C4A574') : '#555'"
+                (click)="toggleTag(slot, tag.id)"
+              >{{ tag.name_zh }}</button>
+              <span *ngIf="getActiveTags(slot.card).length === 0" class="tag-none">尚無標籤</span>
+            </div>
+            <p *ngIf="!allSlotsFilled" class="tag-pending-hint">抽滿三張後可標記關鍵字</p>
+          </div>
+        </ng-container>
+        <ng-container *ngIf="!slot.card">
+          <div
+            class="card-placeholder-top"
+            (click)="onSlotClick(slot.position_number)"
+            role="button"
+            tabindex="0"
+          >
+            <span class="placeholder-num">第 {{ slot.position_number }} 張</span>
+            <span class="placeholder-text">點此抽牌</span>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Section 1: 尚未抽滿三張時顯示（含繼續抽牌流程） -->
+<section class="section-1" [class.section-1-after-top]="showTopAboutMyDay" *ngIf="!showAboutMyDay">
+  <div class="container">
+    <p class="page-date" *ngIf="!showTopAboutMyDay">{{ displayDate }}</p>
+    <h2 class="section-title">{{ continueSectionTitle }}</h2>
+
+    <div class="theme-picker">
+      <span class="theme-label">抽牌主題</span>
+      <div class="theme-options" *ngIf="!themeLocked">
+        <button
+          *ngFor="let t of themeOptions"
+          type="button"
+          class="theme-btn"
+          [class.theme-btn-active]="selectedTheme === t.key"
+          (click)="selectTheme(t.key)"
+        >
+          {{ t.label }}
+        </button>
+      </div>
+      <span *ngIf="themeLocked" class="theme-locked-badge">{{ themeLabel }}</span>
+    </div>
+
+    <div class="button-group" *ngIf="!showTopAboutMyDay || !hasAnyCardDrawn">
+      <button
+        type="button"
+        class="btn"
+        (click)="autoDraw()"
+        [disabled]="autoDrawing || (hasAnyCardDrawn && isTodayReading)"
+      >
         {{ autoDrawing ? '抽牌中…' : '自動抽牌' }}
       </button>
     </div>
+    <p class="hint hint-partial" *ngIf="showTopAboutMyDay && !allSlotsFilled">
+      請點選上方「點此抽牌」的空位，或下方牌位繼續手動抽牌。
+    </p>
 
-    <p class="hint">或點選下方牌位，由自己真實抽牌：先選花色（大牌／權杖／聖杯／寶劍／錢幣），再選一張牌。</p>
+    <p class="hint" *ngIf="!showTopAboutMyDay || !hasAnyCardDrawn">
+      或點選下方牌位，由自己真實抽牌：先選花色（大牌／權杖／聖杯／寶劍／錢幣），再選一張牌。
+    </p>
 
-    <div class="card-grid">
+    <div class="card-grid" *ngIf="!showTopAboutMyDay || !hasAnyCardDrawn">
       <div
         *ngFor="let slot of slots"
         class="card-slot"
@@ -28,6 +102,24 @@
         <div *ngIf="!slot.card" class="card card-placeholder">
           <span>點我抽牌</span>
         </div>
+      </div>
+    </div>
+
+    <!-- 已顯示頂部 About My Day 時：下方只列出尚未抽的牌位（方便捲動後操作） -->
+    <div class="continue-slots-wrap" *ngIf="showTopAboutMyDay && !allSlotsFilled">
+      <p class="continue-slots-label">尚未完成的位置：</p>
+      <div class="card-grid card-grid-continue">
+        <ng-container *ngFor="let slot of slots">
+          <div
+            *ngIf="!slot.card"
+            class="card-slot card-slot-continue"
+            (click)="onSlotClick(slot.position_number)"
+          >
+            <div class="card card-placeholder">
+              <span>第 {{ slot.position_number }} 張 · 點我抽牌</span>
+            </div>
+          </div>
+        </ng-container>
       </div>
     </div>
 
@@ -86,12 +178,19 @@
   </div>
 </section>
 
-<!-- Section 2: About My Day（三張都抽完後顯示） -->
-<section class="section-2" *ngIf="showAboutMyDay">
+<!-- 今日且三張抽完：頂部已顯示完整 About My Day -->
+<section class="section-2 section-2-done" *ngIf="showAboutMyDay && isTodayReading">
+  <div class="container">
+    <p class="done-hint">今日牌陣已完成，可至 <a routerLink="/history">History</a> 查看紀錄。</p>
+  </div>
+</section>
+
+<!-- 非今日（例如從連結開啟舊紀錄）：完整顯示牌面與標籤 -->
+<section class="section-2 section-reading-past" *ngIf="showAboutMyDay && !isTodayReading">
   <div class="container">
     <p class="page-date">{{ displayDate }}</p>
+    <p class="theme-summary" *ngIf="readingDetail?.theme_label_zh">主題：{{ readingDetail?.theme_label_zh }}</p>
     <h2 class="section-title">About My Day</h2>
-
     <div class="card-grid">
       <div *ngFor="let slot of slots" class="card-wrapper">
         <div
@@ -115,5 +214,48 @@
         </div>
       </div>
     </div>
+  </div>
+</section>
+
+<!-- AI 解牌（三張齊全後） -->
+<section class="section-ai" *ngIf="showAboutMyDay">
+  <div class="container">
+    <h3 class="ai-section-title">AI 解牌</h3>
+    <p class="ai-hint" *ngIf="!readingDetail?.ai_interpretation">
+      可請 AI 依你的<strong>抽牌主題</strong>與<strong>三張牌</strong>（過去／現在／未來）提供整合解讀。
+    </p>
+    <div *ngIf="readingDetail?.ai_interpretation" class="ai-result-box">
+      <p class="ai-meta" *ngIf="readingDetail?.ai_generated_at">
+        產生時間：{{ formatAiTime(readingDetail?.ai_generated_at) }}
+      </p>
+      <div *ngIf="readingDetail?.ai_question" class="ai-user-q">
+        <strong>你的提問</strong>
+        <p>{{ readingDetail.ai_question }}</p>
+      </div>
+      <div
+        class="ai-interpret-body ai-interpret-prose"
+        [innerHTML]="readingDetail.ai_interpretation | markdownToHtml"
+      ></div>
+    </div>
+    <label class="ai-label" for="ai-q-new-spread">給 AI 的明確問題（選填）</label>
+    <textarea
+      id="ai-q-new-spread"
+      class="ai-textarea"
+      [(ngModel)]="aiQuestionDraft"
+      rows="3"
+      placeholder="例如：這週職場上我該注意什麼？留空則 AI 僅依主題與牌面解讀。"
+      [disabled]="aiInterpretLoading"
+    ></textarea>
+    <button
+      type="button"
+      class="btn ai-btn"
+      (click)="requestAiInterpret()"
+      [disabled]="aiInterpretLoading"
+    >
+      {{ aiInterpretLoading ? 'AI 解牌中…' : (readingDetail?.ai_interpretation ? '重新請 AI 解牌' : '請 AI 解牌') }}
+    </button>
+    <p class="ai-footnote">
+      結果會儲存於此筆紀錄，也可至 <a [routerLink]="['/reading', readingId!]">閱讀紀錄</a> 查看。
+    </p>
   </div>
 </section>
