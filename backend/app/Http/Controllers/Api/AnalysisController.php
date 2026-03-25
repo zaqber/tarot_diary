@@ -36,8 +36,8 @@ class AnalysisController extends Controller
 
         // 1) 正逆位
         $orientationRow = (clone $baseCards)
-            ->selectRaw('SUM(CASE WHEN sc.is_reversed = 1 THEN 1 ELSE 0 END) as reversed_count')
-            ->selectRaw('SUM(CASE WHEN sc.is_reversed = 0 THEN 1 ELSE 0 END) as upright_count')
+            ->selectRaw('SUM(CASE WHEN sc.is_reversed THEN 1 ELSE 0 END) as reversed_count')
+            ->selectRaw('SUM(CASE WHEN NOT sc.is_reversed THEN 1 ELSE 0 END) as upright_count')
             ->selectRaw('COUNT(*) as total')
             ->first();
         $orientation = [

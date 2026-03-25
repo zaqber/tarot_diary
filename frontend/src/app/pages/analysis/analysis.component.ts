@@ -6,9 +6,11 @@ import {
   KeywordTrendSeries,
   OrientationStats,
   SelectedCardRankingItem,
-  TopCardStat
+  TopCardStat,
+  TopKeywordGroup
 } from '../../services/analysis.service';
 import { TarotCardService } from '../../services/tarot-card.service';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-analysis',
@@ -17,8 +19,10 @@ import { TarotCardService } from '../../services/tarot-card.service';
 })
 export class AnalysisComponent implements OnInit {
   days = 30;
+  readonly rangeOptions = [7, 30, 90, 180];
   loading = true;
   errorMessage = '';
+  topKeywordGroups: TopKeywordGroup[] = [];
   orientation: OrientationStats = { upright_count: 0, reversed_count: 0, total: 0 };
   topCards: TopCardStat[] = [];
   distribution: DistributionItem[] = [];
@@ -32,15 +36,25 @@ export class AnalysisComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.loadDashboard();
+    this.loadAnalysis();
   }
 
-  loadDashboard(): void {
+  selectRange(days: number): void {
+    if (this.days === days) return;
+    this.days = days;
+    this.loadAnalysis();
+  }
+
+  loadAnalysis(): void {
     this.loading = true;
     this.errorMessage = '';
-    this.analysisService.getDashboard(this.days).subscribe({
-      next: (res) => {
-        this.applyDashboard(res.data);
+    forkJoin({
+      dashboard: this.analysisService.getDashboard(this.days),
+      topKeywords: this.analysisService.getTopKeywords(this.days)
+    }).subscribe({
+      next: ({ dashboard, topKeywords }) => {
+        this.applyDashboard(dashboard.data);
+        this.topKeywordGroups = topKeywords.data?.groups ?? [];
         this.loading = false;
       },
       error: () => {
@@ -58,6 +72,21 @@ export class AnalysisComponent implements OnInit {
     this.selectedCardRanking = data?.selected_cards_ranking ?? [];
     this.trendLabels = data?.keyword_trend?.date_labels ?? [];
     this.trendSeries = data?.keyword_trend?.series ?? [];
+  }
+
+  getGroupLabel(group: TopKeywordGroup): string {
+    return (group?.items || [])
+      .map(item => item?.name_zh || item?.name || '')
+      .filter(Boolean)
+      .join('、');
+  }
+
+  getGroupCount(group: TopKeywordGroup): number {
+    return typeof group?.count === 'number' ? group.count : 0;
+  }
+
+  getGroupColor(group: TopKeywordGroup): string {
+    return group?.items?.[0]?.color || '#9370db';
   }
 
   getCardImagePath(cardId: number): string {

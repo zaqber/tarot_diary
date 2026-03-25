@@ -28,7 +28,6 @@ export class ReadingDetailComponent implements OnInit {
   loading = true;
   errorMessage = '';
   aiQuestionDraft = '';
-  aiTopicDraft = '';
   aiInterpretLoading = false;
   aiError = '';
 
@@ -132,8 +131,7 @@ export class ReadingDetailComponent implements OnInit {
     this.aiInterpretLoading = true;
     this.spreadService.requestAiInterpret(
       this.readingId,
-      this.aiQuestionDraft || undefined,
-      this.aiTopicDraft || undefined
+      this.aiQuestionDraft || undefined
     ).subscribe({
       next: (res: any) => {
         this.aiInterpretLoading = false;

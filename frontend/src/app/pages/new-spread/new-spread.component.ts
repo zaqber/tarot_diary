@@ -87,8 +87,6 @@ export class NewSpreadComponent implements OnInit, OnDestroy {
 
   /** 給 AI 的選填提問 */
   aiQuestionDraft = '';
-  /** 給 AI 的選填主題（會引導解牌重點） */
-  aiTopicDraft = '';
   /** 請求 AI 解牌中 */
   aiInterpretLoading = false;
 
@@ -291,8 +289,7 @@ export class NewSpreadComponent implements OnInit, OnDestroy {
     this.aiInterpretLoading = true;
     this.spreadService.requestAiInterpret(
       this.readingId,
-      this.aiQuestionDraft || undefined,
-      this.aiTopicDraft || undefined
+      this.aiQuestionDraft || undefined
     ).subscribe({
       next: (res: any) => {
         this.aiInterpretLoading = false;

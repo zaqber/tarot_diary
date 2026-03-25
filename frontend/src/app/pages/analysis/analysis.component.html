@@ -1,12 +1,42 @@
 <section class="analysis-section">
   <div class="container">
     <h2 class="section-title">分析儀表板</h2>
-    <p class="section-description">統計區間：最近 {{ days }} 天</p>
+    <div class="range-controls">
+      <span class="range-label">時間區間</span>
+      <div class="range-buttons">
+        <button
+          type="button"
+          class="range-btn"
+          *ngFor="let option of rangeOptions"
+          [class.active]="days === option"
+          (click)="selectRange(option)"
+        >
+          最近 {{ option }} 天
+        </button>
+      </div>
+    </div>
+    <p class="section-description">目前統計：最近 {{ days }} 天</p>
 
     <p *ngIf="loading" class="loading-msg">載入中…</p>
     <p *ngIf="errorMessage" class="error-msg">{{ errorMessage }}</p>
 
     <div class="analysis-grid" *ngIf="!loading && !errorMessage">
+      <article class="panel panel-wide">
+        <h3 class="panel-title">最常出現的關鍵字排名 TOP 3</h3>
+        <div class="ranking-chart" *ngIf="topKeywordGroups.length > 0; else noTopKeywords">
+          <div class="rank-item" *ngFor="let group of topKeywordGroups; let i = index">
+            <div class="rank-bar-wrap">
+              <div class="rank-bar" [ngClass]="'rank-' + (i + 1)" [style.background]="getGroupColor(group)">
+                {{ getGroupCount(group) }}
+              </div>
+            </div>
+            <div class="rank-label">{{ getGroupLabel(group) }}</div>
+            <div class="rank-count">出現 {{ getGroupCount(group) }} 次</div>
+          </div>
+        </div>
+        <ng-template #noTopKeywords><p class="empty-msg">尚無關鍵字資料</p></ng-template>
+      </article>
+
       <!-- 1. 正逆位分析 -->
       <article class="panel">
         <h3 class="panel-title">正逆位分析</h3>
