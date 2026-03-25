@@ -21,6 +21,11 @@
   margin-bottom: 24px;
 }
 
+.question-description-block {
+  max-width: 640px;
+  margin-bottom: 18px;
+}
+
 .theme-label {
   display: block;
   font-size: 0.875rem;
@@ -635,6 +640,11 @@
   margin-bottom: 16px;
   box-sizing: border-box;
   resize: vertical;
+}
+
+.ai-input {
+  min-height: 46px;
+  resize: none;
 }
 
 .ai-btn {

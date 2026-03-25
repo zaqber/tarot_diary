@@ -171,7 +171,12 @@ class SpreadReadingController extends Controller
         if ($position < 1 || $position > 3) {
             return $this->errorResponse('position 須為 1、2 或 3', 422);
         }
-        $result = $this->service->toggleSpreadCardTag($id, $position, (int) $request->input('tag_id'));
+        $result = $this->service->toggleSpreadCardTag(
+            $request->user()->id,
+            $id,
+            $position,
+            (int) $request->input('tag_id')
+        );
         return $this->successResponse($result, '已更新標籤狀態');
     }
 
@@ -194,6 +199,7 @@ class SpreadReadingController extends Controller
     public function requestAiInterpret(Request $request, int $id): JsonResponse
     {
         $request->validate([
+            'topic' => 'nullable|string|max:120',
             'question' => 'nullable|string|max:2000',
         ]);
 
@@ -226,7 +232,11 @@ class SpreadReadingController extends Controller
         }
         $cardsBlock = implode("\n", $lines);
 
+        $optionalTopic = trim((string) $request->input('topic', ''));
         $optionalQ = trim((string) $request->input('question', ''));
+        $topicPart = $optionalTopic !== ''
+            ? "\n\n【使用者希望聚焦的主題】\n".$optionalTopic."\n請優先圍繞這個主題做解讀。"
+            : '';
         $qPart = $optionalQ !== ''
             ? "\n\n【使用者特別想問的問題】\n".$optionalQ."\n請在解牌中充分回應此問題。"
             : '';
@@ -240,9 +250,13 @@ class SpreadReadingController extends Controller
 
 **牌面**：
 {$cardsBlock}
+{$topicPart}
 {$qPart}
 
-請分段說明（可使用 ## 或小標題），篇幅適中、易讀。
+請分段說明（可使用 ## 或小標題），內容精簡、重點導向：
+- 全文約 180～260 字
+- 不超過 5 段
+- 每段 1～3 句，避免冗長
 PROMPT;
 
         try {
@@ -251,8 +265,17 @@ PROMPT;
             return $this->errorResponse($e->getMessage(), 503);
         }
 
+        $storedPrompt = null;
+        if ($optionalTopic !== '' && $optionalQ !== '') {
+            $storedPrompt = "主題：{$optionalTopic}\n問題：{$optionalQ}";
+        } elseif ($optionalTopic !== '') {
+            $storedPrompt = "主題：{$optionalTopic}";
+        } elseif ($optionalQ !== '') {
+            $storedPrompt = $optionalQ;
+        }
+
         $reading->update([
-            'ai_question' => $optionalQ !== '' ? $optionalQ : null,
+            'ai_question' => $storedPrompt,
             'ai_interpretation' => $text,
             'ai_generated_at' => now(),
         ]);

@@ -73,6 +73,16 @@
       </div>
       <span *ngIf="themeLocked" class="theme-locked-badge">{{ themeLabel }}</span>
     </div>
+    <div class="question-description-block">
+      <label class="ai-label" for="ai-q-new-spread-top">問題敘述（選填）</label>
+      <textarea
+        id="ai-q-new-spread-top"
+        class="ai-textarea"
+        [(ngModel)]="aiQuestionDraft"
+        rows="3"
+        placeholder="例如：這週職場上我該注意什麼？留空則 AI 僅依抽牌主題與牌面解讀。"
+      ></textarea>
+    </div>
 
     <div class="button-group" *ngIf="!showTopAboutMyDay || !hasAnyCardDrawn">
       <button
@@ -320,17 +330,8 @@
 <section class="section-ai" *ngIf="showAboutMyDay">
   <div class="container">
     <h3 class="ai-section-title">AI 解牌</h3>
-    <label class="ai-label" for="ai-q-new-spread">給 AI 的明確問題（選填）</label>
-    <textarea
-      id="ai-q-new-spread"
-      class="ai-textarea"
-      [(ngModel)]="aiQuestionDraft"
-      rows="3"
-      placeholder="例如：這週職場上我該注意什麼？留空則 AI 僅依主題與牌面解讀。"
-      [disabled]="aiInterpretLoading"
-    ></textarea>
     <p class="ai-hint" *ngIf="!readingDetail?.ai_interpretation">
-      送出後，AI 會依你的<strong>抽牌主題</strong>與<strong>三張牌</strong>（過去／現在／未來）整合解讀；若有填寫問題會一併納入。
+      送出後，AI 會依你的<strong>抽牌主題</strong>與<strong>三張牌</strong>（過去／現在／未來）整合解讀；若上方有填寫問題敘述也會一併納入。
     </p>
     <div *ngIf="readingDetail?.ai_interpretation" class="ai-result-box">
       <p class="ai-meta" *ngIf="readingDetail?.ai_generated_at">

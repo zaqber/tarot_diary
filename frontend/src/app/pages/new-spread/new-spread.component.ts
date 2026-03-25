@@ -287,7 +287,10 @@ export class NewSpreadComponent implements OnInit, OnDestroy {
     if (this.readingId == null || !this.allSlotsFilled) return;
     this.errorMessage = '';
     this.aiInterpretLoading = true;
-    this.spreadService.requestAiInterpret(this.readingId, this.aiQuestionDraft || undefined).subscribe({
+    this.spreadService.requestAiInterpret(
+      this.readingId,
+      this.aiQuestionDraft || undefined
+    ).subscribe({
       next: (res: any) => {
         this.aiInterpretLoading = false;
         this.applyReadingDetail(res.data ?? res);

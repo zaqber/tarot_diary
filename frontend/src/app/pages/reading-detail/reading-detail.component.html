@@ -30,6 +30,8 @@
                 *ngFor="let tag of slot.card ? getActiveTags(slot.card) : []"
                 type="button"
                 class="tag tag-clickable"
+                [class.tag-selected]="isTagSelected(slot, tag.id)"
+                [class.tag-unselected]="!isTagSelected(slot, tag.id)"
                 [style.background-color]="isTagNameRepeated(tag.name_zh) ? (tag.color || '#666') : '#555'"
                 (click)="toggleTag(slot, tag.id)"
               >{{ tag.name_zh }}</button>
@@ -41,13 +43,13 @@
 
       <div class="ai-reading-block" *ngIf="allSlotsFilled">
         <h3 class="ai-section-title">AI 解牌</h3>
-        <label class="ai-label" for="ai-q-reading">給 AI 的明確問題（選填）</label>
+        <label class="ai-label" for="ai-q-reading">問題敘述（選填）</label>
         <textarea
           id="ai-q-reading"
           class="ai-textarea"
           [(ngModel)]="aiQuestionDraft"
           rows="3"
-          placeholder="例如：這段關係我該如何調整？留空則僅依主題與牌面解讀。"
+          placeholder="例如：這段關係我該如何調整？留空則僅依抽牌主題與牌面解讀。"
           [disabled]="aiInterpretLoading"
         ></textarea>
         <p class="ai-hint" *ngIf="!readingDetail?.ai_interpretation">

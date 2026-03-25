@@ -1,11 +1,16 @@
 import { Component, OnInit } from '@angular/core';
-import { AnalysisService, TopKeywordGroup } from '../../services/analysis.service';
-
-/** 顯示用：左=第2名、中=第1名、右=第3名 */
-export interface RankSlot {
-  rank: number;
-  group: TopKeywordGroup;
-}
+import {
+  AnalysisDashboardResponse,
+  AnalysisService,
+  DistributionItem,
+  KeywordTrendSeries,
+  OrientationStats,
+  SelectedCardRankingItem,
+  TopCardStat,
+  TopKeywordGroup
+} from '../../services/analysis.service';
+import { TarotCardService } from '../../services/tarot-card.service';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-analysis',
@@ -13,75 +18,137 @@ export interface RankSlot {
   styleUrls: ['./analysis.component.css']
 })
 export class AnalysisComponent implements OnInit {
-  /** 依序為 [第2名, 第1名, 第3名]，讓第一名在正中間 */
-  displaySlots: RankSlot[] = [];
-  topKeywordsDays = 30;
+  days = 30;
+  readonly rangeOptions = [7, 30, 90, 180];
   loading = true;
   errorMessage = '';
+  topKeywordGroups: TopKeywordGroup[] = [];
+  orientation: OrientationStats = { upright_count: 0, reversed_count: 0, total: 0 };
+  topCards: TopCardStat[] = [];
+  distribution: DistributionItem[] = [];
+  selectedCardRanking: SelectedCardRankingItem[] = [];
+  trendLabels: string[] = [];
+  trendSeries: KeywordTrendSeries[] = [];
 
-  constructor(private analysisService: AnalysisService) {}
+  constructor(
+    private analysisService: AnalysisService,
+    private tarotCardService: TarotCardService
+  ) {}
 
   ngOnInit(): void {
-    this.loadTopKeywords();
+    this.loadAnalysis();
   }
 
-  loadTopKeywords(): void {
+  selectRange(days: number): void {
+    if (this.days === days) return;
+    this.days = days;
+    this.loadAnalysis();
+  }
+
+  loadAnalysis(): void {
     this.loading = true;
     this.errorMessage = '';
-    this.analysisService.getTopKeywords(this.topKeywordsDays).subscribe({
-      next: (res) => {
-        const data = res.data;
-        const groups = data?.groups ?? [];
-        this.topKeywordsDays = data?.days ?? 30;
-        this.displaySlots = this.buildDisplaySlots(groups);
+    forkJoin({
+      dashboard: this.analysisService.getDashboard(this.days),
+      topKeywords: this.analysisService.getTopKeywords(this.days)
+    }).subscribe({
+      next: ({ dashboard, topKeywords }) => {
+        this.applyDashboard(dashboard.data);
+        this.topKeywordGroups = topKeywords.data?.groups ?? [];
         this.loading = false;
       },
       error: () => {
-        this.errorMessage = '無法載入 TOP3 關鍵字';
+        this.errorMessage = '無法載入分析資料';
         this.loading = false;
       }
     });
   }
 
-  /** 排列為 [2nd, 1st, 3rd]，第一名正中間 */
-  private buildDisplaySlots(groups: TopKeywordGroup[]): RankSlot[] {
-    const slots: RankSlot[] = [];
-    const order = [2, 1, 3]; // 視覺順序：左2、中1、右3
-    order.forEach((rank, i) => {
-      if (groups[i]) {
-        slots.push({ rank, group: groups[i] });
-      }
-    });
-    return slots;
+  private applyDashboard(data: AnalysisDashboardResponse): void {
+    this.days = data?.days ?? 30;
+    this.orientation = data?.orientation ?? { upright_count: 0, reversed_count: 0, total: 0 };
+    this.topCards = data?.top_cards ?? [];
+    this.distribution = data?.arcana_suit_distribution ?? [];
+    this.selectedCardRanking = data?.selected_cards_ranking ?? [];
+    this.trendLabels = data?.keyword_trend?.date_labels ?? [];
+    this.trendSeries = data?.keyword_trend?.series ?? [];
   }
 
-  /** 同組關鍵字並排顯示，例如「行動、沈思」 */
   getGroupLabel(group: TopKeywordGroup): string {
-    const items = Array.isArray(group) ? group : (group?.items || []);
-    return items
-      .map((item: { name_zh?: string; name?: string }) => item?.name_zh || item?.name || '')
+    return (group?.items || [])
+      .map(item => item?.name_zh || item?.name || '')
       .filter(Boolean)
       .join('、');
   }
 
-  /** 柱狀顏色：取同組第一個的 color */
-  getGroupColor(group: TopKeywordGroup): string {
-    const items = Array.isArray(group) ? group : (group?.items || []);
-    const first = items[0];
-    return (first?.color as string) || '#9370DB';
-  }
-
-  /** 同組次數（相容後端 { count, items } 或舊版純陣列） */
   getGroupCount(group: TopKeywordGroup): number {
-    if (group && typeof (group as any).count === 'number') {
-      return (group as any).count;
-    }
-    const items = Array.isArray(group) ? group : (group?.items || []);
-    const first = items[0];
-    return (first as any)?.count ?? 0;
+    return typeof group?.count === 'number' ? group.count : 0;
   }
 
-  getRankClass(rank: number): string {
-    return `rank-${rank}`;
+  getGroupColor(group: TopKeywordGroup): string {
+    return group?.items?.[0]?.color || '#9370db';
+  }
+
+  getCardImagePath(cardId: number): string {
+    return this.tarotCardService.getCardImagePath(cardId);
+  }
+
+  pieStyleFromItems(items: Array<{ count: number; color?: string | null }>): string {
+    const total = items.reduce((sum, it) => sum + (it.count || 0), 0);
+    if (total <= 0) {
+      return 'conic-gradient(#d9e2ec 0 100%)';
+    }
+    let start = 0;
+    const parts = items.map(it => {
+      const ratio = (it.count || 0) / total;
+      const end = start + ratio * 100;
+      const seg = `${it.color || '#999'} ${start.toFixed(2)}% ${end.toFixed(2)}%`;
+      start = end;
+      return seg;
+    });
+    return `conic-gradient(${parts.join(', ')})`;
+  }
+
+  orientationPieStyle(): string {
+    return this.pieStyleFromItems([
+      { count: this.orientation.upright_count, color: '#2ecc71' },
+      { count: this.orientation.reversed_count, color: '#e74c3c' }
+    ]);
+  }
+
+  distributionPieStyle(): string {
+    return this.pieStyleFromItems(this.distribution);
+  }
+
+  trendWindowLabels(): string[] {
+    const windowSize = 14;
+    const arr = this.trendLabels || [];
+    return arr.length > windowSize ? arr.slice(arr.length - windowSize) : arr;
+  }
+
+  trendWindowData(series: KeywordTrendSeries): number[] {
+    const windowSize = 14;
+    const arr = series?.data || [];
+    return arr.length > windowSize ? arr.slice(arr.length - windowSize) : arr;
+  }
+
+  trendMaxInWindow(series: KeywordTrendSeries): number {
+    const data = this.trendWindowData(series);
+    const max = data.reduce((m, n) => Math.max(m, n), 0);
+    return max > 0 ? max : 1;
+  }
+
+  trendBarHeight(value: number, series: KeywordTrendSeries): string {
+    const max = this.trendMaxInWindow(series);
+    const pct = (value / max) * 100;
+    return `${Math.max(8, pct)}%`;
+  }
+
+  formatTrendDate(isoDate: string): string {
+    const parts = isoDate.split('-');
+    if (parts.length !== 3) {
+      return isoDate;
+    }
+    return `${parts[1]}/${parts[2]}`;
   }
 }

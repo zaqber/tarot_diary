@@ -1,329 +1,349 @@
-/* Section 1 - Top Keywords（與全站背景統一）*/
-.section-1 {
-  background: rgba(255, 255, 255, 0.75);
-  padding: 80px 20px;
-  min-height: 868px;
+.analysis-section {
+  background: rgba(255, 255, 255, 0.78);
+  min-height: 100vh;
+  padding: 72px 16px 80px;
 }
 
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  width: 100%;
-}
-
-.info-box {
-  background: #fff;
-  border-radius: 10px;
-  padding: 40px;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-  margin-bottom: 40px;
 }
 
 .section-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #999;
-  margin-bottom: 30px;
+  margin: 0 0 8px;
+  font-size: 2.2rem;
+  color: #1b4b6f;
 }
 
 .section-description {
-  color: #666;
-  line-height: 1.8;
-  margin-bottom: 40px;
+  margin: 0 0 24px;
+  color: #5f6b76;
+}
+
+.range-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 0 0 10px;
+}
+
+.range-label {
+  color: #4a5966;
+  font-weight: 600;
+}
+
+.range-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.range-btn {
+  border: 1px solid rgba(27, 75, 111, 0.25);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.88rem;
+  background: #fff;
+  color: #274b68;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.range-btn:hover {
+  border-color: rgba(27, 75, 111, 0.45);
+}
+
+.range-btn.active {
+  background: #1b4b6f;
+  color: #fff;
+  border-color: #1b4b6f;
 }
 
 .loading-msg,
 .error-msg,
 .empty-msg {
-  text-align: center;
-  margin: 20px 0;
   color: #666;
 }
 
 .error-msg {
-  color: #c00;
+  color: #c0392b;
 }
 
-.rank-count {
+.analysis-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.panel {
+  background: #fff;
+  border: 1px solid rgba(27, 75, 111, 0.12);
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.panel-wide {
+  grid-column: 1 / -1;
+}
+
+.panel-title {
+  margin: 0 0 14px;
+  font-size: 1.1rem;
+  color: #1b4b6f;
+}
+
+.pie-wrap {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.pie {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  flex: 0 0 150px;
+}
+
+.legend {
+  display: grid;
+  gap: 8px;
+}
+
+.legend-item {
+  color: #4d5964;
+  font-size: 0.95rem;
+}
+
+.legend-total {
+  font-weight: 700;
+}
+
+.dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+.dot-upright {
+  background: #2ecc71;
+}
+
+.dot-reversed {
+  background: #e74c3c;
+}
+
+.top-cards {
+  display: grid;
+  gap: 10px;
+}
+
+.top-card-item {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.rank-badge {
+  width: 34px;
+  text-align: center;
+  font-weight: 700;
+  color: #1b4b6f;
+}
+
+.top-card-item img {
+  width: 38px;
+  height: 58px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.top-card-meta {
+  display: grid;
+}
+
+.top-card-meta strong {
+  font-size: 0.95rem;
+  color: #2f3d4a;
+}
+
+.top-card-meta span {
   font-size: 0.85rem;
-  color: #888;
-  white-space: nowrap;
+  color: #6d7780;
 }
 
-/* Ranking Chart */
 .ranking-chart {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  gap: 40px;
-  margin: 60px auto;
-  max-width: 640px;
+  gap: 16px;
+  margin: 10px auto 0;
 }
 
 .rank-item {
+  flex: 1 1 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  min-width: 0;
-  max-width: 200px;
-  flex: 1 1 0;
+  gap: 8px;
 }
 
-/* 固定高度讓三根長條的底對齊在同一水平線 */
 .rank-bar-wrap {
-  height: 203px;
+  height: 180px;
   display: flex;
   align-items: flex-end;
-  justify-content: center;
 }
 
 .rank-bar {
-  width: 182px;
-  min-width: 182px;
-  flex-shrink: 0;
-  background: #999;
-  border-radius: 5px;
+  min-width: 70px;
+  border-radius: 8px 8px 0 0;
+  color: #fff;
+  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
-  font-weight: 700;
-  font-size: 1.2rem;
+  padding: 10px 8px;
 }
 
 .rank-bar.rank-1 {
-  height: 203px;
-  background: #999;
+  height: 170px;
 }
 
 .rank-bar.rank-2 {
-  height: 157px;
-  background: #b3b3b3;
+  height: 130px;
 }
 
 .rank-bar.rank-3 {
-  height: 110px;
-  background: #cccccc;
+  height: 96px;
 }
 
 .rank-label {
-  font-size: 1.35rem;
-  font-weight: 700;
-  color: #333;
+  color: #374655;
+  font-size: 0.9rem;
+  line-height: 1.4;
   text-align: center;
-  word-break: break-word;
-  overflow-wrap: break-word;
-  line-height: 1.55;
-  width: 100%;
-  min-height: 2.5em;
 }
 
-/* Section 2 - Filter Data */
-.section-2 {
-  background: #f5f5f5;
-  padding: 80px 20px;
+.rank-count {
+  color: #7a8590;
+  font-size: 0.8rem;
 }
 
-.filter-section {
-  margin-bottom: 40px;
-}
-
-.filter-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #999;
-  margin-bottom: 30px;
-}
-
-.filter-buttons {
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-  margin-bottom: 30px;
-}
-
-.filter-btn {
-  background: none;
-  border: none;
-  border-bottom: 2px solid #029fe7;
-  color: #333;
-  padding: 10px 0;
-  font-size: 1.5rem;
-  cursor: pointer;
-  transition: color 0.3s;
-}
-
-.filter-btn:hover {
-  color: #029fe7;
-}
-
-/* Table */
-.data-table-wrapper {
-  overflow-x: auto;
-  margin-top: 30px;
-}
-
-.data-table {
+.ranking-table {
   width: 100%;
   border-collapse: collapse;
-  background: #fff;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
-.data-table thead {
-  background: #e3f2fd;
-}
-
-.data-table th {
-  padding: 15px;
+.ranking-table th,
+.ranking-table td {
+  padding: 10px 8px;
+  border-bottom: 1px solid #ebeff3;
   text-align: left;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  font-size: 0.875rem;
-  color: #333;
+  color: #3b4752;
+  font-size: 0.92rem;
 }
 
-.data-table td {
-  padding: 20px 15px;
-  border-bottom: 1px solid #eee;
-  font-weight: 600;
+.trend-wrap {
+  display: grid;
+  gap: 10px;
 }
 
-.data-table tbody tr:hover {
-  background: #f5f5f5;
+.trend-row {
+  display: grid;
+  grid-template-columns: 130px 1fr 44px;
+  gap: 8px;
+  align-items: end;
 }
 
-.data-table .service-name {
-  text-align: left;
+.trend-label {
+  color: #364451;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.data-table .time-cell,
-.data-table .cost-cell {
+.trend-bars {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(8px, 1fr);
+  gap: 4px;
+  align-items: end;
+  min-height: 86px;
+  padding: 6px 0;
+}
+
+.trend-bar {
+  border-radius: 3px 3px 0 0;
+  min-height: 8px;
+  opacity: 0.9;
+}
+
+.trend-total {
+  text-align: right;
+  color: #4f5d6a;
+  font-size: 0.88rem;
+}
+
+.trend-dates {
+  margin-left: 138px;
+  margin-right: 44px;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(8px, 1fr);
+  gap: 4px;
+}
+
+.trend-dates span {
+  font-size: 0.74rem;
+  color: #8a96a1;
   text-align: center;
 }
 
-.data-table .cost-cell {
-  background: #fafafa;
-}
-
-.book-btn {
-  background: #fff;
-  color: #666;
-  border: 1px solid #666;
-  padding: 10px 30px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 0.875rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  transition: all 0.3s;
-}
-
-.book-btn:hover {
-  background: #666;
-  color: #fff;
-}
-
-/* Section 3 - Matching Rate */
-.section-3 {
-  background: linear-gradient(to right, #fee7ef, #c5c9f9);
-  padding: 80px 20px;
-  min-height: 400px;
-}
-
-/* Tablet */
-@media (max-width: 991px) {
-  .ranking-chart {
-    gap: 30px;
+@media (max-width: 900px) {
+  .analysis-grid {
+    grid-template-columns: 1fr;
+  }
+  .panel-wide {
+    grid-column: auto;
+  }
+  .trend-row,
+  .trend-row {
+    grid-template-columns: 100px 1fr 36px;
   }
 
-  .rank-bar {
-    width: 150px;
+  .trend-dates {
+    margin-left: 108px;
+    margin-right: 36px;
   }
-
-  .filter-buttons {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .filter-btn {
-    font-size: 1.25rem;
-  }
-}
-
-/* Mobile */
-@media (max-width: 768px) {
-  .section-1,
-  .section-2,
-  .section-3 {
-    padding: 60px 15px;
-  }
-
-  .info-box {
-    padding: 25px;
-  }
-
-  .section-title,
-  .filter-title {
-    font-size: 1.5rem;
-  }
-
-  .ranking-chart {
-    flex-direction: row;
-    gap: 15px;
-  }
-
-  .rank-bar {
-    width: 100px;
-  }
-
-  .rank-bar.rank-1 {
-    height: 150px;
-  }
-
-  .rank-bar.rank-2 {
-    height: 120px;
-  }
-
-  .rank-bar.rank-3 {
-    height: 90px;
-  }
-
-  .rank-label {
-    font-size: 1.2rem;
-  }
-
-  .data-table {
-    font-size: 0.85rem;
-  }
-
-  .data-table th,
-  .data-table td {
-    padding: 10px 8px;
-  }
-
-  .book-btn {
-    padding: 8px 15px;
-    font-size: 0.75rem;
-  }
-}
-
-/* Small Mobile */
-@media (max-width: 575px) {
   .ranking-chart {
     gap: 10px;
   }
 
   .rank-bar {
-    width: 80px;
+    min-width: 58px;
+    padding: 8px 6px;
+    font-size: 0.9rem;
   }
 
-  .rank-label {
-    font-size: 1rem;
+  .rank-bar-wrap {
+    height: 150px;
+  }
+
+  .rank-bar.rank-1 {
+    height: 140px;
+  }
+
+  .rank-bar.rank-2 {
+    height: 108px;
+  }
+
+  .rank-bar.rank-3 {
+    height: 80px;
   }
 }
-
-
