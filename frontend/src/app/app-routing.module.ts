@@ -9,6 +9,7 @@ import { DetailComponent } from './pages/detail/detail.component';
 import { ReadingDetailComponent } from './pages/reading-detail/reading-detail.component';
 import { LoginComponent } from './pages/login/login.component';
 import { AuthCallbackComponent } from './pages/auth-callback/auth-callback.component';
+import { RemindersComponent } from './pages/reminders/reminders.component';
 import { AuthGuard } from './guards/auth.guard';
 
 const routes: Routes = [
@@ -20,6 +21,7 @@ const routes: Routes = [
   { path: 'history', component: HistoryComponent, canActivate: [AuthGuard] },
   { path: 'reading/:id', component: ReadingDetailComponent, canActivate: [AuthGuard] },
   { path: 'analysis', component: AnalysisComponent, canActivate: [AuthGuard] },
+  { path: 'reminders', component: RemindersComponent, canActivate: [AuthGuard] },
   { path: 'tarot_card_mgmt', component: TarotCardMgmtComponent, canActivate: [AuthGuard] },
   { path: 'detail/:id', component: DetailComponent, canActivate: [AuthGuard] },
   { path: '**', redirectTo: '' }
