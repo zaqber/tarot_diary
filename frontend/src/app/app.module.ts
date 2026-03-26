@@ -16,6 +16,7 @@ import { DetailComponent } from './pages/detail/detail.component';
 import { ReadingDetailComponent } from './pages/reading-detail/reading-detail.component';
 import { LoginComponent } from './pages/login/login.component';
 import { AuthCallbackComponent } from './pages/auth-callback/auth-callback.component';
+import { RemindersComponent } from './pages/reminders/reminders.component';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 import { MarkdownToHtmlPipe } from './pipes/markdown-to-html.pipe';
 
@@ -33,7 +34,8 @@ import { MarkdownToHtmlPipe } from './pipes/markdown-to-html.pipe';
     TarotCardMgmtComponent,
     DetailComponent,
     LoginComponent,
-    AuthCallbackComponent
+    AuthCallbackComponent,
+    RemindersComponent
   ],
   imports: [
     BrowserModule,

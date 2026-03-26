@@ -28,6 +28,9 @@ class User extends Authenticatable
         'evening_reminder_time',
         'is_morning_reminder_enabled',
         'is_evening_reminder_enabled',
+        'telegram_chat_id',
+        'telegram_link_token',
+        'telegram_link_token_expires_at',
         'last_login',
         'is_active',
     ];
@@ -35,6 +38,8 @@ class User extends Authenticatable
     protected $hidden = [
         'password_hash',
         'remember_token',
+        'telegram_link_token',
+        'telegram_link_token_expires_at',
     ];
 
     protected function casts(): array
@@ -44,6 +49,7 @@ class User extends Authenticatable
             'is_active' => 'boolean',
             'is_morning_reminder_enabled' => 'boolean',
             'is_evening_reminder_enabled' => 'boolean',
+            'telegram_link_token_expires_at' => 'datetime',
         ];
     }
 

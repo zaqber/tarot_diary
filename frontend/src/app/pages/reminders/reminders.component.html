@@ -1,0 +1,92 @@
+<section class="reminders-section">
+  <div class="container">
+    <h1 class="page-title">提醒設定</h1>
+    <p class="page-lead">設定早晨／傍晚通知時間，並綁定 Telegram 以接收推播。</p>
+
+    <p *ngIf="loading" class="status-msg">載入中…</p>
+    <p *ngIf="errorMessage" class="error-msg">{{ errorMessage }}</p>
+    <p *ngIf="successMessage" class="success-msg">{{ successMessage }}</p>
+
+    <div class="panels" *ngIf="!loading && settings">
+      <article class="panel">
+        <h2 class="panel-title">通知時間</h2>
+        <p class="panel-hint">時間依下方「時區」計算；伺服器每分鐘檢查一次，請將排程 <code>schedule:run</code> 設為每分鐘執行。</p>
+
+        <label class="field-label" for="tz">時區</label>
+        <select id="tz" class="field-control" [(ngModel)]="timezone">
+          <option *ngFor="let z of timezoneOptions" [value]="z">{{ z }}</option>
+        </select>
+
+        <div class="time-row">
+          <div class="time-block">
+            <label class="field-label" for="morning">早晨提醒</label>
+            <div class="time-inline">
+              <input id="morning" type="time" class="field-control time-input" [(ngModel)]="morningTime" />
+              <label class="toggle">
+                <input type="checkbox" [(ngModel)]="morningEnabled" />
+                <span>啟用</span>
+              </label>
+            </div>
+          </div>
+          <div class="time-block">
+            <label class="field-label" for="evening">傍晚提醒</label>
+            <div class="time-inline">
+              <input id="evening" type="time" class="field-control time-input" [(ngModel)]="eveningTime" />
+              <label class="toggle">
+                <input type="checkbox" [(ngModel)]="eveningEnabled" />
+                <span>啟用</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" class="btn-primary" (click)="save()" [disabled]="saving">
+          {{ saving ? '儲存中…' : '儲存設定' }}
+        </button>
+      </article>
+
+      <article class="panel">
+        <h2 class="panel-title">Telegram 綁定</h2>
+        <p *ngIf="settings.telegram_linked" class="linked-badge">目前已綁定 Telegram</p>
+        <p *ngIf="!settings.telegram_linked" class="panel-hint">
+          請先至 @BotFather 建立 Bot，並在後端 <code>.env</code> 設定 <code>TELEGRAM_BOT_TOKEN</code>、<code>TELEGRAM_BOT_USERNAME</code>、<code>TELEGRAM_WEBHOOK_SECRET</code>，再設定 Webhook（見下方說明）。
+        </p>
+
+        <div class="telegram-actions">
+          <button
+            type="button"
+            class="btn-secondary"
+            (click)="generateTelegramLink()"
+            [disabled]="telegramLinkLoading || settings.telegram_linked"
+          >
+            {{ telegramLinkLoading ? '產生中…' : '產生綁定連結' }}
+          </button>
+          <button
+            type="button"
+            class="btn-outline"
+            (click)="unlinkTelegram()"
+            [disabled]="telegramUnlinkLoading || !settings.telegram_linked"
+          >
+            {{ telegramUnlinkLoading ? '處理中…' : '解除綁定' }}
+          </button>
+        </div>
+
+        <div *ngIf="deepLink" class="deep-link-box">
+          <p>請在手機或電腦點開下方連結，並在 Telegram 按「Start」：</p>
+          <a [href]="deepLink" target="_blank" rel="noopener noreferrer" class="deep-link">{{ deepLink }}</a>
+          <p *ngIf="linkExpiresAt" class="expires">連結有效至（伺服器時間）：{{ linkExpiresAt }}</p>
+        </div>
+
+        <details class="webhook-help">
+          <summary>Webhook 設定說明</summary>
+          <ol>
+            <li>將後端部署在可 HTTPS 存取的網址（本機可用 ngrok）。</li>
+            <li><code>TELEGRAM_WEBHOOK_SECRET</code> 設為一段隨機字串。</li>
+            <li>呼叫 Telegram API：<code>https://api.telegram.org/bot&lt;TOKEN&gt;/setWebhook?url=https://你的網域/api/telegram/webhook/&lt;SECRET&gt;</code></li>
+            <li>伺服器需執行 <code>* * * * * cd /path/to/backend &amp;&amp; php artisan schedule:run</code> 以發送定時提醒。</li>
+          </ol>
+        </details>
+      </article>
+    </div>
+  </div>
+</section>

@@ -41,6 +41,16 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
 
+    /**
+     * Telegram Bot：提醒推播與 Webhook（@BotFather 建立 Bot 取得 token）
+     */
+    'telegram' => [
+        'bot_token' => env('TELEGRAM_BOT_TOKEN'),
+        'bot_username' => env('TELEGRAM_BOT_USERNAME'),
+        /** 放在 Webhook URL 路徑中，避免他人亂打你的 endpoint */
+        'webhook_secret' => env('TELEGRAM_WEBHOOK_SECRET'),
+    ],
+
     'anthropic' => [
         'api_key' => env('ANTHROPIC_API_KEY'),
         // 若 .env 寫 ANTHROPIC_MODEL=（空值）會導致 model 為空 → API 回 400

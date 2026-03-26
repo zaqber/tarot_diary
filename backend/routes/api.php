@@ -2,10 +2,12 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AnalysisController;
+use App\Http\Controllers\Api\ReminderSettingsController;
 use App\Http\Controllers\Api\SpreadReadingController;
 use App\Http\Controllers\Api\SuitController;
 use App\Http\Controllers\Api\TagController;
 use App\Http\Controllers\Api\TarotCardController;
+use App\Http\Controllers\Api\TelegramWebhookController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -13,6 +15,9 @@ use Illuminate\Support\Facades\Route;
 | API Routes
 |--------------------------------------------------------------------------
 */
+
+// Telegram Webhook（不驗證 Sanctum；以 URL 內 secret 保護）
+Route::post('/telegram/webhook/{secret}', [TelegramWebhookController::class, 'handle']);
 
 // 認證相關（公開）
 Route::prefix('auth')->group(function () {
@@ -26,6 +31,14 @@ Route::prefix('auth')->group(function () {
 Route::prefix('auth')->middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
+});
+
+// 提醒設定、Telegram 綁定（需登入）
+Route::prefix('me')->middleware('auth:sanctum')->group(function () {
+    Route::get('/reminder-settings', [ReminderSettingsController::class, 'show']);
+    Route::patch('/reminder-settings', [ReminderSettingsController::class, 'update']);
+    Route::post('/telegram/link-token', [ReminderSettingsController::class, 'createTelegramLinkToken']);
+    Route::post('/telegram/unlink', [ReminderSettingsController::class, 'unlinkTelegram']);
 });
 
 // 塔羅牌、標籤、牌組（公開讀取）
