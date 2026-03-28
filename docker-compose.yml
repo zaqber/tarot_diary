@@ -76,6 +76,33 @@ services:
         limits:
           memory: 448M
 
+  # Laravel 排程（reminders:send-telegram 等）：無需在 EC2 設 crontab
+  scheduler:
+    image: 636155394566.dkr.ecr.ap-northeast-1.amazonaws.com/tarot-diary/backend:latest
+    platform: linux/amd64
+    container_name: tarot-scheduler
+    restart: unless-stopped
+    command: ["php", "artisan", "schedule:work"]
+    environment:
+      APP_NAME: "Tarot Diary"
+      APP_ENV: production
+      APP_DEBUG: "false"
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    volumes:
+      - ${BACKEND_ENV_PATH:-./backend/.env}:/var/www/html/.env:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - tarot-network
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+
   frontend:
     image: 636155394566.dkr.ecr.ap-northeast-1.amazonaws.com/tarot-diary/frontend:latest
     platform: linux/amd64
