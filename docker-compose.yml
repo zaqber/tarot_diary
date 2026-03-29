@@ -2,8 +2,6 @@
 # AMD64 EC2：docker compose pull && docker compose up -d（映像由 GitHub Actions 建 amd64 推 ECR）
 # 1GB 記憶體：已設 memory 上限，若 OOM 可再調低或加 swap
 
-version: '3.8'
-
 services:
   postgres:
     image: postgres:16-alpine
@@ -82,7 +80,7 @@ services:
     platform: linux/amd64
     container_name: tarot-scheduler
     restart: unless-stopped
-    command: ["php", "artisan", "schedule:work"]
+    command: ["sh", "-c", "php artisan config:clear && php artisan schedule:work"]
     environment:
       APP_NAME: "Tarot Diary"
       APP_ENV: production

@@ -10,9 +10,10 @@ use Illuminate\Support\Facades\Cache;
 
 class SendTelegramReminders extends Command
 {
-    protected $signature = 'reminders:send-telegram';
+    protected $signature = 'reminders:send-telegram
+                            {--force : 略過時間與早晨／傍晚開關，對已綁定 Telegram 的啟用使用者發送測試訊息}';
 
-    protected $description = '依使用者時區與設定時間，透過 Telegram 發送早晨／傍晚提醒';
+    protected $description = '依使用者時區與設定時間，透過 Telegram 發送早晨／傍晚提醒（可用 --force 測試推播）';
 
     public function handle(TelegramBotService $telegram): int
     {
@@ -20,6 +21,10 @@ class SendTelegramReminders extends Command
             $this->warn('略過：未設定 TELEGRAM_BOT_TOKEN');
 
             return self::SUCCESS;
+        }
+
+        if ($this->option('force')) {
+            return $this->handleForce($telegram);
         }
 
         $count = 0;
@@ -34,9 +39,74 @@ class SendTelegramReminders extends Command
 
         if ($count > 0) {
             $this->info("已送出 {$count} 則提醒。");
+        } else {
+            $this->comment('本次無符合「時段＋已啟用提醒」的使用者，未發送任何訊息。（測試推播請用 --force）');
         }
 
         return self::SUCCESS;
+    }
+
+    private function handleForce(TelegramBotService $telegram): int
+    {
+        $text = "🧪 塔羅日記：測試推播\n若收到此則，表示後端與 Telegram 連線正常。";
+        $count = 0;
+
+        User::query()
+            ->where('is_active', true)
+            ->whereNotNull('telegram_chat_id')
+            ->chunkById(100, function ($users) use ($telegram, $text, &$count): void {
+                foreach ($users as $user) {
+                    $count += $this->forceSendToUser($user, $telegram, $text);
+                }
+            });
+
+        if ($count > 0) {
+            $this->info("已強制送出 {$count} 則測試訊息。");
+        } else {
+            $this->warn('沒有任何「已啟用且已綁定 telegram_chat_id」的使用者，未發送。');
+        }
+
+        return self::SUCCESS;
+    }
+
+    private function forceSendToUser(User $user, TelegramBotService $telegram, string $text): int
+    {
+        $chatId = $user->telegram_chat_id;
+        if (! $chatId) {
+            return 0;
+        }
+
+        $scheduled = now();
+
+        $log = ReminderLog::query()->create([
+            'user_id' => $user->id,
+            'reminder_type' => 'manual_test',
+            'scheduled_time' => $scheduled,
+            'sent_time' => null,
+            'is_sent' => false,
+            'is_clicked' => false,
+            'click_time' => null,
+            'title' => '手動測試推播',
+            'message' => $text,
+            'created_at' => now(),
+        ]);
+
+        $result = $telegram->sendMessage($chatId, $text);
+        if ($result['ok']) {
+            $log->update([
+                'is_sent' => true,
+                'sent_time' => now(),
+            ]);
+
+            return 1;
+        }
+
+        $log->update([
+            'message' => ($text."\n[錯誤] ".($result['error'] ?? 'unknown')),
+        ]);
+        $this->warn("user_id={$user->id} 發送失敗：".($result['error'] ?? 'unknown'));
+
+        return 0;
     }
 
     private function processUser(User $user, TelegramBotService $telegram): int
