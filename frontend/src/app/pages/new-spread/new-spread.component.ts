@@ -1,5 +1,5 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { SpreadService } from '../../services/spread.service';
@@ -85,8 +85,19 @@ export class NewSpreadComponent implements OnInit, OnDestroy {
   loadingCards = false;
   errorMessage = '';
 
+  /** 是否展開「自行抽牌紀錄」區塊 */
+  showManualSection = false;
+
+  /**
+   * 自動抽牌儀式一次紀錄三張後，不再顯示正逆位切換（手動選牌則可切換）。
+   * 以 sessionStorage 記住該 readingId，同分頁重新整理後仍隱藏。
+   */
+  orientationLockedFromAuto = false;
+
   /** 給 AI 的選填提問 */
   aiQuestionDraft = '';
+  private _savedQuestion = '';
+  private questionSaveTimer: ReturnType<typeof setTimeout> | null = null;
   /** 請求 AI 解牌中 */
   aiInterpretLoading = false;
 
@@ -106,7 +117,8 @@ export class NewSpreadComponent implements OnInit, OnDestroy {
     private spreadService: SpreadService,
     private tarotCardService: TarotCardService,
     private suitService: SuitService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -114,13 +126,98 @@ export class NewSpreadComponent implements OnInit, OnDestroy {
     this.loadInitialReading();
   }
 
+  /**
+   * 已在 /new_spread 時再點「新增抽牌」等連結：路由不變則元件不會重建，須手動重置並清掉 query。
+   */
+  onNavigateFreshNewSpread(ev: MouseEvent): void {
+    if (ev.button !== 0 || ev.ctrlKey || ev.metaKey || ev.shiftKey || ev.altKey) {
+      return;
+    }
+    const path = this.router.url.split(/[?#]/)[0];
+    if (!path.endsWith('/new_spread')) {
+      return;
+    }
+    ev.preventDefault();
+    this.resetToFreshNewSpread();
+    void this.router.navigate(['/new_spread'], { replaceUrl: true });
+  }
+
+  /** 清空目前牌陣狀態，等同重新進入空白 New Spread */
+  private resetToFreshNewSpread(): void {
+    this.clearRitualTimers();
+    this.closeManualPick();
+    this.readingId = null;
+    this.readingDetail = null;
+    this.slots = [
+      { position_number: 1, card: null, isReversed: false, selectedTagIds: [] },
+      { position_number: 2, card: null, isReversed: false, selectedTagIds: [] },
+      { position_number: 3, card: null, isReversed: false, selectedTagIds: [] }
+    ];
+    this.autoDrawing = false;
+    this.autoRitualPhase = 'idle';
+    this.ritualDeck = [];
+    this.ritualSelected = [];
+    this.shuffleAnimationStarted = false;
+    this.cutDeckAnimated = false;
+    this.loadingCards = false;
+    this.errorMessage = '';
+    this.showManualSection = false;
+    this.orientationLockedFromAuto = false;
+    this.aiQuestionDraft = '';
+    this._savedQuestion = '';
+    this.aiInterpretLoading = false;
+    this.selectedTheme = 'overall';
+    if (this.questionSaveTimer != null) {
+      clearTimeout(this.questionSaveTimer);
+      this.questionSaveTimer = null;
+    }
+    if (typeof window !== 'undefined') {
+      window.scrollTo(0, 0);
+    }
+  }
+
   ngOnDestroy(): void {
     this.clearRitualTimers();
+    if (this.questionSaveTimer != null) {
+      clearTimeout(this.questionSaveTimer);
+      this.questionSaveTimer = null;
+    }
+  }
+
+  toggleManualSection(): void {
+    this.showManualSection = true;
+  }
+
+  cancelManualSection(): void {
+    this.showManualSection = false;
+  }
+
+  /** 手動選牌彈層：點遮罩關閉 */
+  onManualModalBackdropClick(event: MouseEvent): void {
+    if (event.target === event.currentTarget) {
+      this.closeManualPick();
+    }
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscapeCloseManualModal(): void {
+    if (this.manualSlot != null && (this.manualStep === 'suit' || this.manualStep === 'card')) {
+      this.closeManualPick();
+    }
   }
 
   /** 主按鈕：儀式進行中 */
   get autoRitualInProgress(): boolean {
     return this.autoRitualPhase !== 'idle' && this.autoRitualPhase !== 'submitting';
+  }
+
+  /** 洗牌／切牌／選牌任一步可略過，自 牌池隨機抽三張紀錄（須已載入牌池） */
+  get canSkipAutoRitual(): boolean {
+    const p = this.autoRitualPhase;
+    if (p !== 'shuffle' && p !== 'cut' && p !== 'pick') {
+      return false;
+    }
+    return this.readingId != null && this.ritualDeck.length >= 3;
   }
 
   get ritualPickStepLabel(): string {
@@ -239,7 +336,7 @@ export class NewSpreadComponent implements OnInit, OnDestroy {
       return;
     }
     this.spreadService.getSpreadReading(id).subscribe({
-      next: (res: any) => this.applyReadingDetail(res.data ?? res),
+      next: (res: any) => this.applyReadingDetail(res.data ?? res, true),
       error: () => {}
     });
   }
@@ -252,9 +349,14 @@ export class NewSpreadComponent implements OnInit, OnDestroy {
     return `${y}年${parseInt(m, 10)}月${parseInt(d, 10)}日`;
   }
 
-  private applyReadingDetail(detail: SpreadReadingDetail): void {
+  /**
+   * @param syncQuestionFromServer 從網址載入既有牌陣時為 true，一律以後端為準；
+   *   其餘（抽牌後 refresh）為 false，避免後端 ai_question 仍空時覆寫使用者已輸入的文字。
+   */
+  private applyReadingDetail(detail: SpreadReadingDetail, syncQuestionFromServer = false): void {
     this.readingDetail = detail;
     this.readingId = detail.id;
+    this.syncOrientationLockFromStorage(detail.id);
     if (detail.theme) {
       this.selectedTheme = detail.theme;
     }
@@ -267,10 +369,18 @@ export class NewSpreadComponent implements OnInit, OnDestroy {
         selectedTagIds: sc?.selected_tag_ids ?? []
       };
     });
-    if (detail.ai_interpretation) {
-      this.aiQuestionDraft = detail.ai_question || '';
-    } else if (detail.ai_question) {
-      this.aiQuestionDraft = detail.ai_question;
+    if (syncQuestionFromServer) {
+      const q = detail.ai_question != null ? String(detail.ai_question) : '';
+      this.aiQuestionDraft = q;
+      this._savedQuestion = q.trim();
+    } else {
+      const serverQ = detail.ai_question != null ? String(detail.ai_question).trim() : '';
+      if (serverQ !== '') {
+        this.aiQuestionDraft = String(detail.ai_question);
+        this._savedQuestion = serverQ;
+      } else {
+        this._savedQuestion = '';
+      }
     }
   }
 
@@ -283,6 +393,37 @@ export class NewSpreadComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** 輸入後延遲儲存（不必依賴 blur） */
+  scheduleSaveQuestion(): void {
+    if (this.questionSaveTimer != null) {
+      clearTimeout(this.questionSaveTimer);
+    }
+    this.questionSaveTimer = setTimeout(() => {
+      this.questionSaveTimer = null;
+      this.saveQuestion();
+    }, 700);
+  }
+
+  /** textarea blur 時自動儲存問題敘述 */
+  saveQuestion(): void {
+    if (this.readingId == null) return;
+    const q = this.aiQuestionDraft.trim();
+    if (q === this._savedQuestion.trim()) return;
+    this.spreadService.updateQuestion(this.readingId, q).subscribe({
+      next: () => { this._savedQuestion = q; },
+      error: () => {}
+    });
+  }
+
+  /** refresh 後若本地仍有未寫入後端的問題敘述，補存一次 */
+  private persistUnsavedQuestion(): void {
+    if (this.readingId == null) return;
+    const q = this.aiQuestionDraft.trim();
+    if (q === '' && this._savedQuestion.trim() === '') return;
+    if (q === this._savedQuestion.trim()) return;
+    this.saveQuestion();
+  }
+
   requestAiInterpret(): void {
     if (this.readingId == null || !this.allSlotsFilled) return;
     this.errorMessage = '';
@@ -293,7 +434,7 @@ export class NewSpreadComponent implements OnInit, OnDestroy {
     ).subscribe({
       next: (res: any) => {
         this.aiInterpretLoading = false;
-        this.applyReadingDetail(res.data ?? res);
+        this.applyReadingDetail(res.data ?? res, true);
       },
       error: (err: { error?: { message?: string } }) => {
         this.aiInterpretLoading = false;
@@ -321,11 +462,6 @@ export class NewSpreadComponent implements OnInit, OnDestroy {
    */
   get showTopAboutMyDay(): boolean {
     return this.readingId != null && this.readingDetail != null && this.hasAnyCardDrawn;
-  }
-
-  /** 繼續抽牌區標題 */
-  get continueSectionTitle(): string {
-    return this.showTopAboutMyDay && !this.allSlotsFilled ? '繼續完成此筆牌陣' : 'Start My Day';
   }
 
   /** 已抽至少一張後鎖定主題；僅建立紀錄尚未抽牌時仍可改 */
@@ -391,6 +527,7 @@ export class NewSpreadComponent implements OnInit, OnDestroy {
       return;
     }
     this.errorMessage = '';
+    this.orientationLockedFromAuto = false;
     this.autoDrawing = true;
     this.autoRitualPhase = 'shuffle';
     this.ritualSelected = [];
@@ -398,7 +535,7 @@ export class NewSpreadComponent implements OnInit, OnDestroy {
     this.cutDeckAnimated = false;
     this.clearRitualTimers();
 
-    this.spreadService.createSpreadReading(this.selectedTheme).subscribe({
+    this.spreadService.createSpreadReading(this.selectedTheme, this.aiQuestionDraft).subscribe({
       next: (res: any) => {
         const id = res.data?.id ?? res.id;
         if (!id) {
@@ -406,6 +543,10 @@ export class NewSpreadComponent implements OnInit, OnDestroy {
           return;
         }
         this.readingId = id;
+        const sent = this.aiQuestionDraft.trim();
+        if (sent) {
+          this._savedQuestion = sent;
+        }
         this.fetchAllTarotCards$().subscribe({
           next: all => {
             if (all.length < 3) {
@@ -506,6 +647,34 @@ export class NewSpreadComponent implements OnInit, OnDestroy {
     this.errorMessage = msg;
   }
 
+  /**
+   * 跳過剩餘儀式：自目前儀式牌池隨機取三張（與手動選牌路徑分開），正逆位隨機，寫入後刷新。
+   */
+  skipAutoRitualToResult(): void {
+    const id = this.readingId;
+    if (id == null || this.ritualDeck.length < 3) {
+      return;
+    }
+    const p = this.autoRitualPhase;
+    if (p !== 'shuffle' && p !== 'cut' && p !== 'pick') {
+      return;
+    }
+
+    this.clearRitualTimers();
+    this.shuffleAnimationStarted = false;
+    this.cutDeckAnimated = false;
+
+    const pool = this.shuffleArray([...this.ritualDeck]);
+    const three = pool.slice(0, 3);
+    this.autoRitualPhase = 'submitting';
+    const items = three.map((c, i) => ({
+      position: (i + 1) as 1 | 2 | 3,
+      card: c,
+      isReversed: Math.random() < 0.5
+    }));
+    this.addCardsThenRefresh(id, items, true);
+  }
+
   /** 取消儀式（保留已建立的牌陣，可改用手動抽牌） */
   cancelAutoRitual(): void {
     if (this.autoRitualPhase === 'idle' || this.autoRitualPhase === 'submitting') {
@@ -562,13 +731,45 @@ export class NewSpreadComponent implements OnInit, OnDestroy {
         card: c,
         isReversed: Math.random() < 0.5
       }));
-      this.addCardsThenRefresh(id, items);
+      this.addCardsThenRefresh(id, items, true);
+    }
+  }
+
+  private orientationLockStorageKey(rid: number): string {
+    return `new_spread_orientation_auto_${rid}`;
+  }
+
+  private persistOrientationLockedFromAuto(rid: number): void {
+    this.orientationLockedFromAuto = true;
+    try {
+      sessionStorage.setItem(this.orientationLockStorageKey(rid), '1');
+    } catch {
+      /* ignore quota / private mode */
+    }
+  }
+
+  private clearOrientationLockedFromAuto(rid: number | null): void {
+    this.orientationLockedFromAuto = false;
+    if (rid == null) return;
+    try {
+      sessionStorage.removeItem(this.orientationLockStorageKey(rid));
+    } catch {
+      /* ignore */
+    }
+  }
+
+  private syncOrientationLockFromStorage(rid: number): void {
+    try {
+      this.orientationLockedFromAuto = sessionStorage.getItem(this.orientationLockStorageKey(rid)) === '1';
+    } catch {
+      this.orientationLockedFromAuto = false;
     }
   }
 
   private addCardsThenRefresh(
     rid: number,
-    items: Array<{ position: number; card: TarotCard; isReversed: boolean }>
+    items: Array<{ position: number; card: TarotCard; isReversed: boolean }>,
+    fromAutoRitual = false
   ): void {
     let done = 0;
     const total = items.length;
@@ -579,6 +780,9 @@ export class NewSpreadComponent implements OnInit, OnDestroy {
         this.autoRitualPhase = 'idle';
         this.ritualDeck = [];
         this.ritualSelected = [];
+        if (fromAutoRitual) {
+          this.persistOrientationLockedFromAuto(rid);
+        }
         this.refreshReading(rid);
       }
     };
@@ -594,9 +798,13 @@ export class NewSpreadComponent implements OnInit, OnDestroy {
     });
   }
 
-  private refreshReading(rid: number): void {
+  private refreshReading(rid: number, afterApply?: () => void): void {
     this.spreadService.getSpreadReading(rid).subscribe({
-      next: (res: any) => this.applyReadingDetail(res.data ?? res),
+      next: (res: any) => {
+        this.applyReadingDetail(res.data ?? res, false);
+        this.persistUnsavedQuestion();
+        afterApply?.();
+      },
       error: () => {
         this.errorMessage = '無法載入牌陣詳情';
       }
@@ -611,11 +819,15 @@ export class NewSpreadComponent implements OnInit, OnDestroy {
     this.errorMessage = '';
     if (this.readingId == null) {
       this.autoDrawing = true;
-      this.spreadService.createSpreadReading(this.selectedTheme).subscribe({
+      this.spreadService.createSpreadReading(this.selectedTheme, this.aiQuestionDraft).subscribe({
         next: (res: any) => {
           const id = res.data?.id ?? res.id;
           this.readingId = id ?? null;
           this.autoDrawing = false;
+          const sent = this.aiQuestionDraft.trim();
+          if (sent) {
+            this._savedQuestion = sent;
+          }
           this.manualSlot = pos;
           this.manualStep = 'suit';
           this.pendingCard = null;
@@ -656,19 +868,53 @@ export class NewSpreadComponent implements OnInit, OnDestroy {
     });
   }
 
-  /** 手動選牌：選定一張牌後進入正/逆位選擇 */
+  /** 手動選牌：選定後直接以正位紀錄，完成後自動開啟下一個空格 */
   selectCard(card: TarotCard): void {
-    if (this.manualSlot == null) return;
-    this.pendingCard = card;
-    this.manualStep = 'orientation';
+    if (this.readingId == null || this.manualSlot == null) return;
+    this.errorMessage = '';
+    this.spreadService.addCard(this.readingId, this.manualSlot, card.id, false).subscribe({
+      next: () => {
+        this.clearOrientationLockedFromAuto(this.readingId);
+        this.manualSlot = null;
+        this.manualStep = 'suit';
+        this.pendingCard = null;
+        this.cardsForPick = [];
+        this.refreshReading(this.readingId!, () => {
+          const next = this.slots.find(s => !s.card);
+          if (next) {
+            this.onSlotClick(next.position_number);
+          }
+        });
+      },
+      error: () => {
+        this.errorMessage = '紀錄此張牌失敗';
+      }
+    });
   }
 
-  /** 手動選牌：確認以正位或逆位紀錄 */
+  /** 切換某個牌位的正逆位，更新後重拉牌陣以同步關鍵字 */
+  toggleOrientation(slot: SlotCard): void {
+    if (this.readingId == null || this.orientationLockedFromAuto) return;
+    const newReversed = !slot.isReversed;
+    slot.isReversed = newReversed; // 立即更新圖片旋轉，不等後端
+    this.spreadService.updateCardOrientation(this.readingId, slot.position_number, newReversed).subscribe({
+      next: () => {
+        this.refreshReading(this.readingId!);
+      },
+      error: () => {
+        slot.isReversed = !newReversed; // 失敗則還原
+        this.errorMessage = '切換正逆位失敗';
+      }
+    });
+  }
+
+  /** @deprecated 已改由 selectCard 直接送出正位，保留供儀式抽牌使用 */
   confirmCardOrientation(isReversed: boolean): void {
     if (this.readingId == null || this.manualSlot == null || this.pendingCard == null) return;
     this.errorMessage = '';
     this.spreadService.addCard(this.readingId, this.manualSlot, this.pendingCard.id, isReversed).subscribe({
       next: () => {
+        this.clearOrientationLockedFromAuto(this.readingId);
         this.manualSlot = null;
         this.manualStep = 'suit';
         this.pendingCard = null;
@@ -693,27 +939,35 @@ export class NewSpreadComponent implements OnInit, OnDestroy {
       || this.tarotCardService.getCardImagePath(card.id);
   }
 
-  getActiveTags(card: TarotCard): Array<{ id: number; name_zh: string; color?: string | null }> {
+  /** 依正逆位過濾 active tags（position: upright / reversed / both） */
+  getActiveTags(card: TarotCard, isReversed = false): Array<{ id: number; name_zh: string; color?: string | null }> {
     if (!card?.tags) return [];
     const t = card.tags as { active?: unknown[]; default?: unknown[] };
     const list = (t.active && t.active.length > 0 ? t.active : t.default) ?? [];
-    return (Array.isArray(list) ? list : []).map((item: Record<string, unknown>) => ({
-      id: (item.id as number) ?? 0,
-      name_zh: (item.name_zh as string) || (item.name as string) || '',
-      color: (item.color as string) ?? null
-    })).filter(tag => tag.name_zh && tag.id);
+    const positionKey = isReversed ? 'reversed' : 'upright';
+    return (Array.isArray(list) ? list : [])
+      .filter((item: Record<string, unknown>) => {
+        const pos = item.position as string | undefined;
+        return !pos || pos === 'both' || pos === positionKey;
+      })
+      .map((item: Record<string, unknown>) => ({
+        id: (item.id as number) ?? 0,
+        name_zh: (item.name_zh as string) || (item.name as string) || '',
+        color: (item.color as string) ?? null
+      }))
+      .filter(tag => tag.name_zh && tag.id);
   }
 
   isTagSelected(slot: SlotCard, tagId: number): boolean {
     return (slot.selectedTagIds || []).indexOf(tagId) !== -1;
   }
 
-  /** 同一牌陣中出現超過一張牌的關鍵字（name_zh），這些標籤顯示黃褐色 */
+  /** 同一牌陣中出現超過一張牌的關鍵字（依各自正逆位過濾），這些標籤顯示黃褐色 */
   getRepeatedTagNames(): Set<string> {
     const countByName = new Map<string, number>();
     this.slots.forEach(slot => {
       if (!slot.card) return;
-      this.getActiveTags(slot.card).forEach(tag => {
+      this.getActiveTags(slot.card, slot.isReversed).forEach(tag => {
         const name = (tag.name_zh || '').trim();
         if (!name) return;
         countByName.set(name, (countByName.get(name) ?? 0) + 1);

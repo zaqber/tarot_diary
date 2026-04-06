@@ -26,10 +26,16 @@ class SpreadReadingController extends Controller
     {
         $request->validate([
             'theme' => 'sometimes|string|in:overall,love,career,finance',
+            'question' => 'nullable|string|max:2000',
         ]);
         $userId = $request->user()->id;
         $theme = (string) $request->input('theme', 'overall');
-        $reading = $this->service->create($userId, $theme);
+        $question = $request->input('question');
+        $reading = $this->service->create(
+            $userId,
+            $theme,
+            is_string($question) ? $question : null
+        );
         $payload = [
             'id' => $reading->id,
             'spread_type_id' => $reading->spread_type_id,
@@ -71,6 +77,14 @@ class SpreadReadingController extends Controller
             'theme' => $reading->theme,
             'theme_label_zh' => SpreadReadingService::themeLabel($reading->theme ?? 'overall'),
         ], '主題已更新');
+    }
+
+    public function updateQuestion(Request $request, int $id): JsonResponse
+    {
+        $request->validate(['question' => 'nullable|string|max:2000']);
+        $reading = SpreadReading::where('user_id', $request->user()->id)->findOrFail($id);
+        $reading->update(['ai_question' => $request->input('question') ?: null]);
+        return $this->successResponse(['ai_question' => $reading->ai_question], '問題敘述已儲存');
     }
 
     public function addCard(Request $request, int $id): JsonResponse
@@ -129,6 +143,7 @@ class SpreadReadingController extends Controller
                 'reading_time' => $reading->reading_time?->toIso8601String(),
                 'theme' => $theme,
                 'theme_label_zh' => SpreadReadingService::themeLabel($theme),
+                'ai_question' => $reading->ai_question,
                 'spread_cards' => $reading->spreadCards->sortBy('position_number')->map(function ($sc) {
                     return [
                         'position_number' => $sc->position_number,
@@ -155,6 +170,26 @@ class SpreadReadingController extends Controller
                 'total' => $paginator->total(),
             ],
         ]);
+    }
+
+    /**
+     * PATCH /api/spread-readings/{id}/cards/positions/{position}/orientation
+     */
+    public function updateCardOrientation(Request $request, int $id, int $position): JsonResponse
+    {
+        $request->validate(['is_reversed' => 'required|boolean']);
+        if ($position < 1 || $position > 3) {
+            return $this->errorResponse('position 須為 1、2 或 3', 422);
+        }
+        try {
+            $sc = $this->service->updateCardOrientation($id, $position, (bool) $request->input('is_reversed'));
+            return $this->successResponse([
+                'position_number' => $sc->position_number,
+                'is_reversed' => (bool) $sc->is_reversed,
+            ], '已更新正逆位');
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            return $this->errorResponse('找不到此牌位', 404);
+        }
     }
 
     /**

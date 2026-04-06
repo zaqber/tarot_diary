@@ -288,6 +288,30 @@
   align-self: center;
 }
 
+.history-user-question {
+  font-size: 0.82rem;
+  color: #555;
+  line-height: 1.45;
+  text-align: center;
+  margin: 0;
+  max-width: 100%;
+  width: 100%;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+.history-user-question-label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #888;
+  letter-spacing: 0.02em;
+  margin-bottom: 4px;
+}
+
 /* 三張牌橫向並排，不換行 */
 .history-card-images {
   display: flex;
@@ -323,6 +347,24 @@
   color: #029fe7;
   margin-bottom: 12px;
   font-weight: 700;
+}
+
+/* 依日期分組（今天以外） */
+.history-day-group {
+  margin-bottom: 36px;
+}
+
+.history-day-group:last-child {
+  margin-bottom: 0;
+}
+
+.history-day-heading {
+  font-size: 1.2rem;
+  color: #029fe7;
+  margin: 0 0 14px;
+  font-weight: 700;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(2, 159, 231, 0.22);
 }
 
 .history-item-today .history-card-img {

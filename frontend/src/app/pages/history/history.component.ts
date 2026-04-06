@@ -4,6 +4,11 @@ import { TarotCardService } from '../../services/tarot-card.service';
 import { getTodayDateStringInTaipei, formatDateDisplay } from '../../services/date.util';
 import { hasReadableSpreadCards } from '../../utils/spread-reading.util';
 
+export interface HistoryDateGroup {
+  dateKey: string;
+  items: SpreadReadingListItem[];
+}
+
 @Component({
   selector: 'app-history',
   templateUrl: './history.component.html',
@@ -44,10 +49,75 @@ export class HistoryComponent implements OnInit {
       });
   }
 
-  /** 過往紀錄（不含今天），維持舊版一筆一格 */
-  get pastList(): SpreadReadingListItem[] {
+  /** 今天以外的紀錄：依 reading_date 分組，日期新→舊，組內新→舊 */
+  get pastDateGroups(): HistoryDateGroup[] {
     const today = this.getTodayDateString();
-    return this.list.filter(item => item.reading_date !== today);
+    const byDate = new Map<string, SpreadReadingListItem[]>();
+    for (const item of this.list) {
+      const dk = (item.reading_date || '').trim();
+      if (!dk || dk === today) {
+        continue;
+      }
+      if (!byDate.has(dk)) {
+        byDate.set(dk, []);
+      }
+      byDate.get(dk)!.push(item);
+    }
+    const keys = [...byDate.keys()].sort((a, b) => b.localeCompare(a));
+    return keys.map(dateKey => ({
+      dateKey,
+      items: this.sortItemsNewestFirst(byDate.get(dateKey)!)
+    }));
+  }
+
+  private sortItemsNewestFirst(items: SpreadReadingListItem[]): SpreadReadingListItem[] {
+    return [...items].sort((a, b) => {
+      const ta = a.reading_time ? new Date(a.reading_time).getTime() : 0;
+      const tb = b.reading_time ? new Date(b.reading_time).getTime() : 0;
+      if (tb !== ta) {
+        return tb - ta;
+      }
+      return b.id - a.id;
+    });
+  }
+
+  /** 區塊標題：昨天／YYYY/MM/DD */
+  groupDateHeading(dateKey: string): string {
+    if (dateKey === this.getYesterdayDateString()) {
+      return '昨天';
+    }
+    return formatDateDisplay(dateKey);
+  }
+
+  private getYesterdayDateString(): string {
+    return this.addDaysToYmd(this.getTodayDateString(), -1);
+  }
+
+  /** 以 YYYY-MM-DD 做純日曆加減（與台北「今天」字串對齊，不依瀏覽器本地時區） */
+  private addDaysToYmd(ymd: string, delta: number): string {
+    const [y, m, d] = ymd.split('-').map(Number);
+    const t = Date.UTC(y, m - 1, d + delta);
+    const nd = new Date(t);
+    return `${nd.getUTCFullYear()}-${String(nd.getUTCMonth() + 1).padStart(2, '0')}-${String(
+      nd.getUTCDate()
+    ).padStart(2, '0')}`;
+  }
+
+  /** 分組內卡片副標：有紀錄時間則顯示時分，否則顯示日期 */
+  formatPastItemCaption(item: SpreadReadingListItem): string {
+    if (item.reading_time) {
+      try {
+        return new Date(item.reading_time).toLocaleTimeString('zh-TW', {
+          timeZone: 'Asia/Taipei',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true
+        });
+      } catch {
+        /* fall through */
+      }
+    }
+    return formatDateDisplay(item.reading_date);
   }
 
   get currentTodaySlide(): SpreadReadingListItem | null {

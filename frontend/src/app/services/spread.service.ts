@@ -30,8 +30,13 @@ export class SpreadService {
   /**
    * 建立一筆新的三張牌陣
    */
-  createSpreadReading(theme: string = 'overall'): Observable<{ data: CreateSpreadResponse }> {
-    return this.http.post<{ data: CreateSpreadResponse }>(this.apiUrl, { theme });
+  createSpreadReading(theme: string = 'overall', question?: string | null): Observable<{ data: CreateSpreadResponse }> {
+    const body: { theme: string; question?: string } = { theme };
+    const q = question?.trim();
+    if (q) {
+      body.question = q;
+    }
+    return this.http.post<{ data: CreateSpreadResponse }>(this.apiUrl, body);
   }
 
   /** 尚未抽牌前可變更該筆牌陣主題 */
@@ -86,6 +91,26 @@ export class SpreadService {
   }
 
   /**
+   * 儲存問題敘述（ai_question）
+   */
+  updateQuestion(readingId: number, question: string): Observable<{ data: { ai_question: string | null } }> {
+    return this.http.patch<{ data: { ai_question: string | null } }>(
+      `${this.apiUrl}/${readingId}/question`,
+      { question }
+    );
+  }
+
+  /**
+   * 更新某個牌位的正逆位
+   */
+  updateCardOrientation(readingId: number, position: number, isReversed: boolean): Observable<{ data: { position_number: number; is_reversed: boolean } }> {
+    return this.http.patch<{ data: { position_number: number; is_reversed: boolean } }>(
+      `${this.apiUrl}/${readingId}/cards/positions/${position}/orientation`,
+      { is_reversed: isReversed }
+    );
+  }
+
+  /**
    * 切換「符合當天狀態」的標籤（點選後紀錄）
    */
   toggleSpreadCardTag(readingId: number, position: number, tagId: number): Observable<{ data: { selected: boolean; selected_tag_ids: number[] } }> {
@@ -122,6 +147,8 @@ export interface SpreadReadingListItem {
   reading_time?: string | null;
   theme?: string;
   theme_label_zh?: string;
+  /** 問題敘述（選填） */
+  ai_question?: string | null;
   spread_cards: Array<{
     position_number: number;
     card_id: number;

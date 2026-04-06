@@ -40,12 +40,14 @@ class SpreadReadingService
      * @param string $theme overall|love|career|finance
      * @return SpreadReading
      */
-    public function create(int $userId = 1, string $theme = 'overall'): SpreadReading
+    public function create(int $userId = 1, string $theme = 'overall', ?string $aiQuestion = null): SpreadReading
     {
         $this->ensureUserExists($userId);
         if (! self::isValidTheme($theme)) {
             $theme = 'overall';
         }
+
+        $q = $aiQuestion !== null ? trim($aiQuestion) : '';
 
         return SpreadReading::create([
             'user_id' => $userId,
@@ -55,6 +57,7 @@ class SpreadReadingService
             'question' => null,
             'overall_note' => null,
             'is_reviewed' => false,
+            'ai_question' => $q !== '' ? $q : null,
         ]);
     }
 
@@ -123,6 +126,15 @@ class SpreadReadingService
             'card_id' => $cardId,
             'is_reversed' => $isReversed,
         ]);
+    }
+
+    public function updateCardOrientation(int $spreadReadingId, int $positionNumber, bool $isReversed): SpreadCard
+    {
+        $sc = SpreadCard::where('spread_reading_id', $spreadReadingId)
+            ->where('position_number', $positionNumber)
+            ->firstOrFail();
+        $sc->update(['is_reversed' => $isReversed]);
+        return $sc->fresh();
     }
 
     /**

@@ -73,8 +73,10 @@ Route::prefix('spread-readings')->middleware('auth:sanctum')->group(function () 
     Route::post('/', [SpreadReadingController::class, 'store']);
     Route::get('/{id}', [SpreadReadingController::class, 'show']);
     Route::patch('/{id}/theme', [SpreadReadingController::class, 'updateTheme']);
+    Route::patch('/{id}/question', [SpreadReadingController::class, 'updateQuestion']);
     Route::post('/{id}/ai-interpret', [SpreadReadingController::class, 'requestAiInterpret']);
     Route::post('/{id}/cards', [SpreadReadingController::class, 'addCard']);
+    Route::patch('/{id}/cards/positions/{position}/orientation', [SpreadReadingController::class, 'updateCardOrientation']);
     Route::post('/{id}/cards/positions/{position}/tags', [SpreadReadingController::class, 'toggleTag']);
 });
 

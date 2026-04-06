@@ -2,7 +2,7 @@
   <div class="container">
     <h2 class="section-title">抽牌紀錄</h2>
     <p class="section-description">
-      查看每次三張牌陣。若<strong>今天抽了不只一組</strong>，可用左右切換；其餘與以往相同。
+      依<strong>日期</strong>分組瀏覽；<strong>今天</strong>若有多筆牌陣，可用左右切換；其餘日期以當日多張卡片並列顯示。
     </p>
 
     <p *ngIf="loading" class="loading-msg">載入中…</p>
@@ -32,6 +32,13 @@
       >
         <span class="history-date">{{ formatDate(todayReadings[0].reading_date) }}</span>
         <span class="history-theme" *ngIf="todayReadings[0].theme_label_zh">{{ todayReadings[0].theme_label_zh }}</span>
+        <p
+          *ngIf="todayReadings[0].ai_question?.trim()"
+          class="history-user-question"
+          [attr.title]="todayReadings[0].ai_question"
+        >
+          <span class="history-user-question-label">問題敘述</span>{{ todayReadings[0].ai_question }}
+        </p>
         <div class="history-card-images">
           <img
             *ngFor="let sc of getOrderedCards(todayReadings[0].spread_cards)"
@@ -70,6 +77,13 @@
                 {{ formatDate(slide.reading_date) }} · {{ formatTodaySlideTime(slide) }}
               </p>
               <span class="history-slide-theme" *ngIf="slide.theme_label_zh">{{ slide.theme_label_zh }}</span>
+              <p
+                *ngIf="slide.ai_question?.trim()"
+                class="history-user-question"
+                [attr.title]="slide.ai_question"
+              >
+                <span class="history-user-question-label">問題敘述</span>{{ slide.ai_question }}
+              </p>
               <div class="history-card-images">
                 <img
                   *ngFor="let sc of getOrderedCards(slide.spread_cards)"
@@ -97,15 +111,25 @@
       </div>
     </div>
 
-    <!-- 過往：維持一筆一格網格 -->
-    <div class="history-list" *ngIf="!loading && !errorMessage && pastList.length > 0">
-      <a
-        *ngFor="let item of pastList"
-        [routerLink]="['/reading', item.id]"
-        class="history-item"
-      >
-        <span class="history-date">{{ formatDate(item.reading_date) }}</span>
+    <!-- 過往：依日期分組，每日一區塊 -->
+    <ng-container *ngIf="!loading && !errorMessage && pastDateGroups.length > 0">
+      <div class="history-day-group" *ngFor="let g of pastDateGroups">
+        <h3 class="history-day-heading">{{ groupDateHeading(g.dateKey) }}</h3>
+        <div class="history-list">
+          <a
+            *ngFor="let item of g.items"
+            [routerLink]="['/reading', item.id]"
+            class="history-item"
+          >
+        <span class="history-date">{{ formatPastItemCaption(item) }}</span>
         <span class="history-theme" *ngIf="item.theme_label_zh">{{ item.theme_label_zh }}</span>
+        <p
+          *ngIf="item.ai_question?.trim()"
+          class="history-user-question"
+          [attr.title]="item.ai_question"
+        >
+          <span class="history-user-question-label">問題敘述</span>{{ item.ai_question }}
+        </p>
         <div class="history-card-images">
           <img
             *ngFor="let sc of getOrderedCards(item.spread_cards)"
@@ -117,8 +141,10 @@
         </div>
         <span class="history-cards">{{ getCardNames(item) }}</span>
         <span class="history-link">查看 →</span>
-      </a>
-    </div>
+          </a>
+        </div>
+      </div>
+    </ng-container>
 
     <p class="history-quick-link" *ngIf="!loading && !errorMessage && list.length > 0">
       <a routerLink="/new_spread">＋ 再抽一組新牌陣</a>

@@ -1,31 +1,80 @@
 <!-- 頂部：目前牌陣已抽至少一張時顯示摘要 + 牌面 -->
 <section class="section-top-about" *ngIf="showTopAboutMyDay">
   <div class="container">
+    <div class="new-spread-cta-wrap" *ngIf="allSlotsFilled">
+      <a
+        routerLink="/new_spread"
+        class="new-spread-cta-link"
+        (click)="onNavigateFreshNewSpread($event)"
+      >＋ 新增抽牌</a>
+    </div>
+    <h2 class="section-title section-title-about page-hero-title">Start My Day</h2>
+    <p class="page-hero-sub" *ngIf="!allSlotsFilled">繼續完成此筆牌陣</p>
     <p class="page-date">{{ displayDate }}</p>
-    <p class="theme-summary" *ngIf="readingDetail?.theme_label_zh">主題：{{ readingDetail?.theme_label_zh }}</p>
-    <h2 class="section-title section-title-about">About My Day</h2>
+
+    <!-- 抽牌主題在上、問題敘述在下；捲動時整塊 sticky -->
+    <div class="setting-card setting-card-with-theme-question setting-card-sticky">
+      <div class="theme-picker">
+        <span class="theme-label">抽牌主題</span>
+        <div class="theme-options" *ngIf="!themeLocked">
+          <button
+            *ngFor="let t of themeOptions"
+            type="button"
+            class="theme-btn"
+            [class.theme-btn-active]="selectedTheme === t.key"
+            (click)="selectTheme(t.key)"
+          >
+            {{ t.label }}
+          </button>
+        </div>
+        <span *ngIf="themeLocked" class="theme-locked-badge">{{ themeLabel }}</span>
+      </div>
+      <div class="setting-divider"></div>
+      <div class="question-description-block">
+        <label class="ai-label" for="ai-q-top-section">問題敘述（選填）</label>
+        <textarea
+          id="ai-q-top-section"
+          class="ai-textarea"
+          [(ngModel)]="aiQuestionDraft"
+          rows="2"
+          placeholder="例如：這週職場上我該注意什麼？"
+          (ngModelChange)="scheduleSaveQuestion()"
+          (blur)="saveQuestion()"
+        ></textarea>
+      </div>
+    </div>
 
     <div class="card-grid about-day-top-grid">
       <div *ngFor="let slot of slots" class="card-wrapper">
         <ng-container *ngIf="slot.card">
-          <div
-            class="card"
-            [class.card-reversed]="slot.isReversed"
-            [style.background-image]="'url(' + getCardImageUrl(slot.card, false) + ')'"
-          ></div>
+          <div class="card-img-wrap">
+            <div
+              class="card"
+              [class.card-reversed]="slot.isReversed"
+              [style.background-image]="'url(' + getCardImageUrl(slot.card, false) + ')'"
+            ></div>
+            <button
+              *ngIf="!orientationLockedFromAuto"
+              type="button"
+              class="btn-rotate-card"
+              [class.is-reversed]="slot.isReversed"
+              (click)="toggleOrientation(slot)"
+              [title]="slot.isReversed ? '切換為正位' : '切換為逆位'"
+            >↻</button>
+          </div>
           <div class="card-info">
             <h4 class="card-title">
-              {{ slot.card?.name || slot.card?.name_zh || '—' }}{{ slot.isReversed ? '（逆位）' : '' }}
+              {{ slot.card?.name || slot.card?.name_zh || '—' }}
             </h4>
             <div class="tag-group tag-group-bottom" *ngIf="allSlotsFilled">
               <button
-                *ngFor="let tag of getActiveTags(slot.card)"
+                *ngFor="let tag of getActiveTags(slot.card, slot.isReversed)"
                 type="button"
                 class="tag tag-clickable"
                 [style.background-color]="getRepeatedTagNames().has(tag.name_zh) ? (tag.color || '#C4A574') : '#555'"
                 (click)="toggleTag(slot, tag.id)"
               >{{ tag.name_zh }}</button>
-              <span *ngIf="getActiveTags(slot.card).length === 0" class="tag-none">尚無標籤</span>
+              <span *ngIf="getActiveTags(slot.card, slot.isReversed).length === 0" class="tag-none">尚無標籤</span>
             </div>
             <p *ngIf="!allSlotsFilled" class="tag-pending-hint">抽滿三張後可標記關鍵字</p>
           </div>
@@ -33,12 +82,13 @@
         <ng-container *ngIf="!slot.card">
           <div
             class="card-placeholder-top"
+            [class.slot-picking]="manualSlot === slot.position_number"
             (click)="onSlotClick(slot.position_number)"
             role="button"
             tabindex="0"
           >
             <span class="placeholder-num">第 {{ slot.position_number }} 張</span>
-            <span class="placeholder-text">點此抽牌</span>
+            <span class="placeholder-text">{{ manualSlot === slot.position_number ? '選牌中…' : '點此抽牌' }}</span>
           </div>
         </ng-container>
       </div>
@@ -49,46 +99,56 @@
 <!-- Section 1: 尚未抽滿三張時顯示（含繼續抽牌流程） -->
 <section class="section-1" [class.section-1-after-top]="showTopAboutMyDay" *ngIf="!showAboutMyDay">
   <div class="container">
+    <h2 class="section-title page-hero-title" *ngIf="!showTopAboutMyDay">Start My Day</h2>
     <p class="page-date" *ngIf="!showTopAboutMyDay">{{ displayDate }}</p>
-    <h2 class="section-title">{{ continueSectionTitle }}</h2>
+
+    <div *ngIf="!showTopAboutMyDay" class="setting-card setting-card-with-theme-question" [class.setting-card-sticky]="showManualSection">
+      <div class="theme-picker">
+        <span class="theme-label">抽牌主題</span>
+        <div class="theme-options" *ngIf="!themeLocked">
+          <button
+            *ngFor="let t of themeOptions"
+            type="button"
+            class="theme-btn"
+            [class.theme-btn-active]="selectedTheme === t.key"
+            (click)="selectTheme(t.key)"
+          >
+            {{ t.label }}
+          </button>
+        </div>
+        <span *ngIf="themeLocked" class="theme-locked-badge">{{ themeLabel }}</span>
+      </div>
+      <div class="setting-divider"></div>
+      <div class="question-description-block">
+        <label class="ai-label" for="ai-q-new-spread-top">問題敘述（選填）</label>
+        <textarea
+          id="ai-q-new-spread-top"
+          class="ai-textarea"
+          [(ngModel)]="aiQuestionDraft"
+          rows="2"
+          placeholder="例如：這週職場上我該注意什麼？"
+          (ngModelChange)="scheduleSaveQuestion()"
+          (blur)="saveQuestion()"
+        ></textarea>
+      </div>
+    </div>
 
     <p class="hint hint-new-session" *ngIf="readingId">
       想再抽一組？
-      <a routerLink="/new_spread" class="inline-link">開始全新牌陣</a>
+      <a
+        routerLink="/new_spread"
+        class="inline-link"
+        (click)="onNavigateFreshNewSpread($event)"
+      >開始全新牌陣</a>
       （會建立新的一筆紀錄，與目前這筆分開）
     </p>
-
-    <div class="theme-picker">
-      <span class="theme-label">抽牌主題</span>
-      <div class="theme-options" *ngIf="!themeLocked">
-        <button
-          *ngFor="let t of themeOptions"
-          type="button"
-          class="theme-btn"
-          [class.theme-btn-active]="selectedTheme === t.key"
-          (click)="selectTheme(t.key)"
-        >
-          {{ t.label }}
-        </button>
-      </div>
-      <span *ngIf="themeLocked" class="theme-locked-badge">{{ themeLabel }}</span>
-    </div>
-    <div class="question-description-block">
-      <label class="ai-label" for="ai-q-new-spread-top">問題敘述（選填）</label>
-      <textarea
-        id="ai-q-new-spread-top"
-        class="ai-textarea"
-        [(ngModel)]="aiQuestionDraft"
-        rows="3"
-        placeholder="例如：這週職場上我該注意什麼？留空則 AI 僅依抽牌主題與牌面解讀。"
-      ></textarea>
-    </div>
 
     <div class="button-group" *ngIf="!showTopAboutMyDay || !hasAnyCardDrawn">
       <button
         type="button"
         class="btn"
         (click)="autoDraw()"
+        *ngIf="!showManualSection"
         [disabled]="autoDrawing || hasAnyCardDrawn"
       >
         {{
@@ -98,36 +158,55 @@
               ? '儀式進行中…'
               : autoDrawing
                 ? '準備中…'
-                : '自動抽牌'
+                : '✦ 自動抽牌'
         }}
       </button>
-    </div>
-    <p class="hint hint-ritual" *ngIf="!showTopAboutMyDay || !hasAnyCardDrawn">
-      「自動抽牌」將帶你進行：洗牌動畫 → 切牌（需點擊）→ 展牌 → 自行選出三張。
-    </p>
-    <p class="hint hint-partial" *ngIf="showTopAboutMyDay && !allSlotsFilled">
-      請點選上方「點此抽牌」的空位，或下方牌位繼續手動抽牌。
-    </p>
-
-    <p class="hint" *ngIf="!showTopAboutMyDay || !hasAnyCardDrawn">
-      或點選下方牌位，由自己真實抽牌：先選花色（大牌／權杖／聖杯／寶劍／錢幣），再選一張牌。
-    </p>
-
-    <div class="card-grid" *ngIf="!showTopAboutMyDay || !hasAnyCardDrawn">
-      <div
-        *ngFor="let slot of slots"
-        class="card-slot"
-        [class.filled]="slot.card"
-        (click)="onSlotClick(slot.position_number)"
+      <button
+        type="button"
+        class="btn"
+        (click)="toggleManualSection()"
+        *ngIf="!showManualSection"
+        [disabled]="hasAnyCardDrawn"
       >
+        ☰ 自行抽牌紀錄
+      </button>
+    </div>
+    <p class="hint hint-partial" *ngIf="showTopAboutMyDay && !allSlotsFilled">
+      請點選上方「點此抽牌」的空位，或展開下方繼續手動抽牌。
+    </p>
+
+    <div class="manual-section-wrap" *ngIf="showManualSection && (!showTopAboutMyDay || !hasAnyCardDrawn)">
+      <div class="manual-section-header">
+        <p class="hint hint-manual-top">
+          依序點選牌位，選花色（大牌／權杖／聖杯／寶劍／錢幣）後再選一張牌與正逆位。
+        </p>
+        <button type="button" class="btn-cancel-manual" (click)="cancelManualSection()">✕ 取消</button>
+      </div>
+      <div class="card-grid">
         <div
-          *ngIf="slot.card"
-          class="card"
-          [class.card-reversed]="slot.isReversed"
-          [style.background-image]="'url(' + getCardImageUrl(slot.card, false) + ')'"
-        ></div>
-        <div *ngIf="!slot.card" class="card card-placeholder">
-          <span>點我抽牌</span>
+          *ngFor="let slot of slots"
+          class="card-slot"
+          [class.filled]="slot.card"
+          (click)="!slot.card && onSlotClick(slot.position_number)"
+        >
+          <ng-container *ngIf="slot.card">
+            <div
+              class="card"
+              [class.card-reversed]="slot.isReversed"
+              [style.background-image]="'url(' + getCardImageUrl(slot.card, false) + ')'"
+            ></div>
+            <button
+              *ngIf="!orientationLockedFromAuto"
+              type="button"
+              class="btn-rotate-card btn-rotate-card-grid"
+              [class.is-reversed]="slot.isReversed"
+              (click)="$event.stopPropagation(); toggleOrientation(slot)"
+              [title]="slot.isReversed ? '切換為正位' : '切換為逆位'"
+            >↻</button>
+          </ng-container>
+          <div *ngIf="!slot.card" class="card card-placeholder">
+            <span>點我抽牌</span>
+          </div>
         </div>
       </div>
     </div>
@@ -135,24 +214,39 @@
     <!-- 已顯示頂部 About My Day 時：下方只列出尚未抽的牌位（方便捲動後操作） -->
     <div class="continue-slots-wrap" *ngIf="showTopAboutMyDay && !allSlotsFilled">
       <p class="continue-slots-label">尚未完成的位置：</p>
-      <div class="card-grid card-grid-continue">
+      <div class="continue-slot-buttons">
         <ng-container *ngFor="let slot of slots">
-          <div
+          <button
             *ngIf="!slot.card"
-            class="card-slot card-slot-continue"
+            type="button"
+            class="btn btn-continue-slot"
+            [class.btn-continue-slot-active]="manualSlot === slot.position_number"
             (click)="onSlotClick(slot.position_number)"
           >
-            <div class="card card-placeholder">
-              <span>第 {{ slot.position_number }} 張 · 點我抽牌</span>
-            </div>
-          </div>
+            {{ manualSlot === slot.position_number ? '選牌中…' : '+ 第 ' + slot.position_number + ' 張' }}
+          </button>
         </ng-container>
       </div>
     </div>
 
-    <!-- 手動選牌：先選花色 -->
-    <div *ngIf="manualSlot && manualStep === 'suit'" class="manual-pick suit-pick">
-      <h3>第 {{ manualSlot }} 張 — 選擇花色</h3>
+    <p *ngIf="errorMessage" class="error-msg">{{ errorMessage }}</p>
+  </div>
+</section>
+
+<!-- 自行抽牌：彈出視窗（手機版建議全寬可捲動，見說明） -->
+<div
+  class="manual-modal-backdrop"
+  *ngIf="manualSlot && (manualStep === 'suit' || manualStep === 'card')"
+  (click)="onManualModalBackdropClick($event)"
+  role="dialog"
+  aria-modal="true"
+  [attr.aria-labelledby]="manualStep === 'suit' ? 'manual-modal-suit-title' : 'manual-modal-card-title'"
+>
+  <div class="manual-modal-panel" (click)="$event.stopPropagation()">
+    <button type="button" class="manual-modal-close" (click)="closeManualPick()" aria-label="關閉">✕</button>
+
+    <ng-container *ngIf="manualStep === 'suit'">
+      <h3 id="manual-modal-suit-title" class="manual-modal-title">第 {{ manualSlot }} 張 — 選擇花色</h3>
       <div class="suit-buttons">
         <button
           *ngFor="let opt of suitOptions"
@@ -163,14 +257,13 @@
           {{ opt.name_zh }}
         </button>
       </div>
-      <button type="button" class="btn btn-secondary" (click)="closeManualPick()">取消</button>
-    </div>
+      <button type="button" class="btn btn-secondary manual-modal-cancel" (click)="closeManualPick()">取消</button>
+    </ng-container>
 
-    <!-- 手動選牌：再選一張牌 -->
-    <div *ngIf="manualSlot && manualStep === 'card'" class="manual-pick card-pick">
-      <h3>第 {{ manualSlot }} 張 — 選擇一張牌</h3>
-      <p *ngIf="loadingCards">載入中…</p>
-      <div class="cards-for-pick">
+    <ng-container *ngIf="manualStep === 'card'">
+      <h3 id="manual-modal-card-title" class="manual-modal-title">第 {{ manualSlot }} 張 — 選擇一張牌</h3>
+      <p *ngIf="loadingCards" class="manual-modal-loading">載入中…</p>
+      <div class="cards-for-pick cards-for-pick-modal">
         <button
           *ngFor="let c of cardsForPick"
           type="button"
@@ -181,29 +274,10 @@
           <span class="pick-card-name">{{ c.name_zh || c.name }}</span>
         </button>
       </div>
-      <button type="button" class="btn btn-secondary" (click)="closeManualPick()">取消</button>
-    </div>
-
-    <!-- 手動選牌：選擇正位或逆位 -->
-    <div *ngIf="manualSlot && manualStep === 'orientation' && pendingCard" class="manual-pick orientation-pick">
-      <h3>第 {{ manualSlot }} 張 — 以正位或逆位紀錄？</h3>
-      <p class="orientation-card-name">{{ pendingCard.name_zh || pendingCard.name }}</p>
-      <div class="orientation-preview">
-        <button type="button" class="orientation-option" (click)="confirmCardOrientation(false)">
-          <span class="orientation-img" [style.background-image]="'url(' + getCardImageUrl(pendingCard, false) + ')'"></span>
-          <span>正位</span>
-        </button>
-        <button type="button" class="orientation-option" (click)="confirmCardOrientation(true)">
-          <span class="orientation-img orientation-img-reversed" [style.background-image]="'url(' + getCardImageUrl(pendingCard, false) + ')'"></span>
-          <span>逆位</span>
-        </button>
-      </div>
-      <button type="button" class="btn btn-secondary" (click)="closeManualPick()">取消</button>
-    </div>
-
-    <p *ngIf="errorMessage" class="error-msg">{{ errorMessage }}</p>
+      <button type="button" class="btn btn-secondary manual-modal-cancel" (click)="closeManualPick()">取消</button>
+    </ng-container>
   </div>
-</section>
+</div>
 
 <!-- 自動抽牌儀式全螢幕覆蓋 -->
 <div
@@ -213,47 +287,54 @@
   aria-modal="true"
   aria-labelledby="ritual-step-title"
 >
-  <button
-    type="button"
-    class="ritual-cancel"
-    *ngIf="autoRitualPhase !== 'submitting'"
-    (click)="cancelAutoRitual()"
-  >
-    取消儀式
-  </button>
+  <div class="ritual-overlay-actions" *ngIf="autoRitualPhase !== 'submitting'">
+    <button
+      type="button"
+      class="ritual-skip-btn"
+      *ngIf="canSkipAutoRitual"
+      (click)="skipAutoRitualToResult()"
+    >
+      跳過儀式，直接完成
+    </button>
+    <button type="button" class="ritual-cancel" (click)="cancelAutoRitual()">
+      取消儀式
+    </button>
+  </div>
 
   <!-- 步驟 1：洗牌 -->
-  <div class="ritual-panel" *ngIf="autoRitualPhase === 'shuffle'">
+  <div class="ritual-panel ritual-panel-shuffle" *ngIf="autoRitualPhase === 'shuffle'">
     <p class="ritual-step-badge">步驟 1／3</p>
     <h2 id="ritual-step-title" class="ritual-title">洗牌</h2>
     <p class="ritual-instruction">
       請在心中默念今日想問的焦點，感受牌組正在洗勻、能量流動。
     </p>
     <div class="shuffle-stage" aria-hidden="true">
-      <div class="shuffle-mat" [class.shuffle-mat-active]="shuffleAnimationStarted">
-        <div class="shuffle-stack-inner">
-          <div class="shuffle-spread-grow">
-            <div
-              *ngFor="let s of shuffleVisualSlots; let idx = index; trackBy: trackByShuffleIdx"
-              class="shuffle-card"
-              [style.--dx]="s.dx + 'px'"
-              [style.--dy]="s.dy + 'px'"
-              [style.--tilt]="s.tilt + 'deg'"
-              [style.--jx1]="s.jx1 + 'px'"
-              [style.--jy1]="s.jy1 + 'px'"
-              [style.--jx2]="s.jx2 + 'px'"
-              [style.--jy2]="s.jy2 + 'px'"
-              [style.--jx3]="s.jx3 + 'px'"
-              [style.--jy3]="s.jy3 + 'px'"
-              [style.--swing1]="s.swing1 + 'deg'"
-              [style.--swing2]="s.swing2 + 'deg'"
-              [style.--swing3]="s.swing3 + 'deg'"
-              [style.width.px]="s.w"
-              [style.height.px]="s.h"
-              [style.z-index]="s.z"
-              [style.animation-duration]="shuffleCardAnim(idx).duration"
-              [style.animation-delay]="shuffleCardAnim(idx).delay"
-            ></div>
+      <div class="shuffle-mat-scaler">
+        <div class="shuffle-mat" [class.shuffle-mat-active]="shuffleAnimationStarted">
+          <div class="shuffle-stack-inner">
+            <div class="shuffle-spread-grow">
+              <div
+                *ngFor="let s of shuffleVisualSlots; let idx = index; trackBy: trackByShuffleIdx"
+                class="shuffle-card"
+                [style.--dx]="s.dx + 'px'"
+                [style.--dy]="s.dy + 'px'"
+                [style.--tilt]="s.tilt + 'deg'"
+                [style.--jx1]="s.jx1 + 'px'"
+                [style.--jy1]="s.jy1 + 'px'"
+                [style.--jx2]="s.jx2 + 'px'"
+                [style.--jy2]="s.jy2 + 'px'"
+                [style.--jx3]="s.jx3 + 'px'"
+                [style.--jy3]="s.jy3 + 'px'"
+                [style.--swing1]="s.swing1 + 'deg'"
+                [style.--swing2]="s.swing2 + 'deg'"
+                [style.--swing3]="s.swing3 + 'deg'"
+                [style.width.px]="s.w"
+                [style.height.px]="s.h"
+                [style.z-index]="s.z"
+                [style.animation-duration]="shuffleCardAnim(idx).duration"
+                [style.animation-delay]="shuffleCardAnim(idx).delay"
+              ></div>
+            </div>
           </div>
         </div>
       </div>
@@ -316,17 +397,6 @@
   </div>
 </div>
 
-<!-- 三張抽完：提示與再抽一組 -->
-<section class="section-2 section-2-done" *ngIf="showAboutMyDay">
-  <div class="container">
-    <p class="done-hint">
-      此筆牌陣已完成。可至 <a routerLink="/history">History</a> 瀏覽全部紀錄，或
-      <a routerLink="/new_spread">再抽一組</a>。
-    </p>
-  </div>
-</section>
-
-<!-- AI 解牌（三張齊全後） -->
 <section class="section-ai" *ngIf="showAboutMyDay">
   <div class="container">
     <h3 class="ai-section-title">AI 解牌</h3>
@@ -348,7 +418,7 @@
     </div>
     <button
       type="button"
-      class="btn ai-btn"
+      class="btn ai-btn ai-btn-gradient"
       (click)="requestAiInterpret()"
       [disabled]="aiInterpretLoading"
     >
