@@ -132,9 +132,23 @@ class SpreadReadingController extends Controller
             return $this->successResponse($reading, '取得當日牌陣成功');
         }
 
-        $perPage = (int) $request->input('per_page', 20);
-        $page = (int) $request->input('page', 1);
-        $paginator = $this->service->listReadings($userId, $perPage, $page);
+        $request->validate([
+            'month' => 'sometimes|string|regex:/^\d{4}-\d{2}$/',
+            'theme' => 'sometimes|string|in:overall,love,career,finance',
+            'has_question' => 'sometimes|boolean',
+        ]);
+
+        $monthYm = $request->input('month');
+        $monthYm = is_string($monthYm) && $monthYm !== '' ? $monthYm : null;
+        $themeFilter = $request->input('theme');
+        $themeFilter = is_string($themeFilter) && $themeFilter !== '' ? $themeFilter : null;
+        $hasQuestion = $request->has('has_question') ? $request->boolean('has_question') : null;
+
+        $defaultPerPage = $monthYm !== null ? 200 : 20;
+        $perPage = (int) $request->input('per_page', $defaultPerPage);
+        $perPage = max(1, min($perPage, 500));
+        $page = max(1, (int) $request->input('page', 1));
+        $paginator = $this->service->listReadings($userId, $perPage, $page, $monthYm, $themeFilter, $hasQuestion);
         $data = $paginator->getCollection()->map(function ($reading) {
             $theme = $reading->theme ?? 'overall';
             return [

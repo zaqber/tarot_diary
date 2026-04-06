@@ -1,6 +1,16 @@
-/* Section 1 - History Gallery（與全站背景統一，半透明疊加）*/
+/* Section 1 - History Gallery（透明／毛玻璃風格） */
 .section-1 {
-  background: rgba(255, 255, 255, 0.75);
+  --hist-glass: rgba(255, 255, 255, 0.28);
+  --hist-glass-hover: rgba(255, 255, 255, 0.42);
+  --hist-glass-veil: rgba(255, 255, 255, 0.18);
+  --hist-stroke: rgba(255, 255, 255, 0.55);
+  --hist-stroke-soft: rgba(255, 255, 255, 0.38);
+  --hist-shadow: 0 8px 32px rgba(0, 0, 0, 0.07);
+  --hist-shadow-lift: 0 12px 40px rgba(0, 0, 0, 0.1);
+
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   padding: 80px 20px 80px;
   min-height: 100vh;
 }
@@ -13,18 +23,245 @@
 
 .section-title {
   font-size: 2.5rem;
-  color: #029fe7;
+  color: #0178b5;
   text-align: center;
   margin-bottom: 20px;
   font-weight: 700;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85), 0 0 28px rgba(255, 255, 255, 0.45);
 }
 
 .section-description {
   text-align: center;
   max-width: 660px;
   margin: 0 auto 50px;
-  color: #666;
+  color: rgba(30, 30, 30, 0.72);
   line-height: 1.6;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+/* 月份切換與篩選 */
+.history-toolbar {
+  max-width: 720px;
+  margin: 0 auto 28px;
+  padding: 18px 20px;
+  /* background: var(--hist-glass); */
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: var(--hist-shadow);
+}
+
+.history-month-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.history-month-label {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #0178b5;
+  min-width: 8em;
+  text-align: center;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.history-month-btn {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--hist-stroke);
+  border-radius: 12px;
+  background: var(--hist-glass-veil);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #0178b5;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s, opacity 0.2s, border-color 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.history-month-btn:hover:not(:disabled) {
+  background: var(--hist-glass-hover);
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+.history-month-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.history-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 24px;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+.history-filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 140px;
+}
+
+.history-filter-label {
+  font-size: 0.85rem;
+  color: rgba(30, 30, 30, 0.65);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.history-filter-select {
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--hist-stroke-soft);
+  background: var(--hist-glass-veil);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: rgba(25, 25, 25, 0.88);
+  font-size: 0.95rem;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.history-filter-select:focus {
+  outline: none;
+  border-color: rgba(2, 159, 231, 0.45);
+  box-shadow: 0 0 0 3px rgba(2, 159, 231, 0.12);
+}
+
+.history-filter-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.history-filter-label-spacer {
+  visibility: hidden;
+  user-select: none;
+}
+
+.history-filter-reset {
+  padding: 10px 18px;
+  border-radius: 12px;
+  border: 1px solid var(--hist-stroke);
+  background: var(--hist-glass-veil);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: rgba(35, 35, 35, 0.82);
+  font-size: 0.95rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.history-filter-reset:hover:not(:disabled) {
+  background: var(--hist-glass-hover);
+  border-color: rgba(255, 255, 255, 0.65);
+}
+
+.history-filter-reset:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.history-page-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px 20px;
+  margin: 0 auto 24px;
+  max-width: 720px;
+}
+
+.history-page-bar-bottom {
+  margin-top: 32px;
+}
+
+.history-page-btn {
+  padding: 8px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(2, 159, 231, 0.45);
+  background: var(--hist-glass-veil);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #0178b5;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.history-page-btn:hover:not(:disabled) {
+  background: rgba(2, 159, 231, 0.12);
+  border-color: rgba(2, 159, 231, 0.55);
+}
+
+.history-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.history-page-info {
+  font-size: 0.9rem;
+  color: rgba(35, 35, 35, 0.72);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.history-empty-today-filter {
+  text-align: center;
+  color: rgba(45, 45, 45, 0.7);
+  margin: 12px 0 0;
+  font-size: 0.95rem;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+/* 不支援 backdrop-filter 時略提高不透明度，維持可讀性 */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .section-1 {
+    background: rgba(255, 255, 255, 0.78);
+  }
+
+  .history-toolbar,
+  .history-item,
+  .history-slide-card,
+  .history-month-btn,
+  .history-filter-select,
+  .history-filter-reset,
+  .history-page-btn,
+  .history-nav-btn,
+  .history-item-go-draw {
+    background: rgba(255, 255, 255, 0.88);
+  }
+
+  .history-theme.history-theme--overall,
+  .history-slide-theme.history-theme--overall {
+    background: rgba(186, 230, 253, 0.92);
+  }
+
+  .history-theme.history-theme--love,
+  .history-slide-theme.history-theme--love {
+    background: rgba(251, 207, 232, 0.92);
+  }
+
+  .history-theme.history-theme--career,
+  .history-slide-theme.history-theme--career {
+    background: rgba(221, 214, 254, 0.92);
+  }
+
+  .history-theme.history-theme--finance,
+  .history-slide-theme.history-theme--finance {
+    background: rgba(167, 243, 208, 0.92);
+  }
+
+  .history-theme.history-theme--unknown,
+  .history-slide-theme.history-theme--unknown {
+    background: rgba(224, 224, 224, 0.92);
+  }
 }
 
 /* Portfolio Grid */
@@ -90,7 +327,8 @@
 .empty-msg {
   text-align: center;
   margin: 20px 0;
-  color: #666;
+  color: rgba(45, 45, 45, 0.72);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
 }
 
 .error-msg {
@@ -98,8 +336,10 @@
 }
 
 .empty-msg a {
-  color: #029fe7;
+  color: #0178b5;
   text-decoration: none;
+  font-weight: 600;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
 .empty-msg a:hover {
@@ -123,13 +363,15 @@
 
 .history-count {
   font-weight: 800;
-  color: #029fe7;
+  color: #0178b5;
   font-size: 1.1rem;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
 .history-hint-nav {
   font-size: 0.8rem;
-  color: #888;
+  color: rgba(60, 60, 60, 0.55);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
 .history-carousel {
@@ -141,25 +383,33 @@
   margin: 0 auto;
 }
 
+.history-carousel.history-carousel-today {
+  max-width: 1080px;
+  gap: 18px;
+}
+
 .history-nav-btn {
   flex-shrink: 0;
   width: 52px;
-  border-radius: 12px;
-  border: 2px solid rgba(2, 159, 231, 0.4);
-  background: #fff;
+  border-radius: 14px;
+  border: 1px solid var(--hist-stroke);
+  background: var(--hist-glass-veil);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   font-size: 1.35rem;
   line-height: 1;
-  color: #029fe7;
+  color: #0178b5;
   cursor: pointer;
   transition: all 0.2s;
   align-self: center;
   min-height: 100px;
   padding: 0;
+  box-shadow: var(--hist-shadow);
 }
 
 .history-nav-btn:hover:not(:disabled) {
-  background: rgba(2, 159, 231, 0.12);
-  border-color: #029fe7;
+  background: rgba(2, 159, 231, 0.14);
+  border-color: rgba(2, 159, 231, 0.45);
 }
 
 .history-nav-btn:disabled {
@@ -178,34 +428,99 @@
   align-items: center;
   gap: 14px;
   padding: 28px 20px;
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  background: var(--hist-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--hist-stroke);
+  border-radius: 18px;
+  box-shadow: var(--hist-shadow);
   text-decoration: none;
-  color: #333;
-  transition: transform 0.2s, box-shadow 0.2s;
+  color: rgba(30, 30, 30, 0.9);
+  transition: transform 0.2s, box-shadow 0.2s, background 0.2s, border-color 0.2s;
 }
 
 .history-slide-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.14);
+  background: var(--hist-glass-hover);
+  border-color: rgba(255, 255, 255, 0.72);
+  box-shadow: var(--hist-shadow-lift);
 }
 
 .history-slide-datetime {
   margin: 0;
   font-weight: 700;
-  color: #029fe7;
+  color: #0178b5;
   font-size: 1.05rem;
   text-align: center;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
+/* 主題分類標籤：共用玻璃底＋依 theme 著色（無邊框） */
+.history-theme,
 .history-slide-theme {
   font-size: 0.8rem;
   font-weight: 700;
-  color: #029fe7;
-  background: rgba(2, 159, 231, 0.12);
-  padding: 4px 12px;
-  border-radius: 8px;
+  padding: 5px 14px;
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: none;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.history-theme {
+  align-self: center;
+}
+
+/* 整體 — 青藍玻璃 */
+.history-theme.history-theme--overall,
+.history-slide-theme.history-theme--overall {
+  color: #045a87;
+  background: rgba(2, 159, 231, 0.22);
+  box-shadow:
+    0 2px 14px rgba(2, 159, 231, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+/* 感情 — 玫粉玻璃 */
+.history-theme.history-theme--love,
+.history-slide-theme.history-theme--love {
+  color: #8f1f4b;
+  background: rgba(236, 72, 153, 0.2);
+  box-shadow:
+    0 2px 14px rgba(236, 72, 153, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+/* 事業 — 紫靛玻璃 */
+.history-theme.history-theme--career,
+.history-slide-theme.history-theme--career {
+  color: #3d2b7a;
+  background: rgba(124, 77, 255, 0.2);
+  box-shadow:
+    0 2px 14px rgba(103, 58, 183, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.38);
+}
+
+/* 財務 — 翠綠玻璃 */
+.history-theme.history-theme--finance,
+.history-slide-theme.history-theme--finance {
+  color: #0d5c45;
+  background: rgba(16, 185, 129, 0.2);
+  box-shadow:
+    0 2px 14px rgba(16, 185, 129, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.38);
+}
+
+/* 未知／舊資料 — 灰霧玻璃 */
+.history-theme.history-theme--unknown,
+.history-slide-theme.history-theme--unknown {
+  color: #37474f;
+  background: rgba(120, 144, 156, 0.22);
+  box-shadow:
+    0 2px 12px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
 .history-slide-card .history-card-img {
@@ -219,9 +534,10 @@
 }
 
 .history-quick-link a {
-  color: #029fe7;
+  color: #0178b5;
   font-weight: 700;
   text-decoration: none;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
 }
 
 .history-quick-link a:hover {
@@ -230,19 +546,31 @@
 
 /* 今天多筆：沿用輪播元件，卡牌尺寸與單筆「今天」一致 */
 .history-today-multi {
-  max-width: 720px;
+  max-width: 960px;
   margin: 0 auto;
 }
 
 .history-today-toolbar {
   margin-bottom: 12px;
+  max-width: 960px;
+}
+
+.history-carousel-today .history-slide-card.history-item-today {
+  padding: 32px 28px;
+  border-radius: 18px;
 }
 
 .history-carousel-today .history-slide-card.history-item-today .history-card-img {
-  width: 140px;
-  height: 210px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  width: 180px;
+  height: 270px;
+  border-radius: 14px;
+  box-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.14),
+    0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
+.history-carousel-today .history-slide-datetime {
+  font-size: 1.15rem;
 }
 
 /* 每行三筆紀錄（三天並排） */
@@ -259,38 +587,34 @@
   align-items: center;
   gap: 12px;
   padding: 20px;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  background: var(--hist-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--hist-stroke);
+  border-radius: 16px;
+  box-shadow: var(--hist-shadow);
   text-decoration: none;
-  color: #333;
+  color: rgba(30, 30, 30, 0.9);
   transition: all 0.2s;
 }
 
 .history-item:hover {
-  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  background: var(--hist-glass-hover);
+  border-color: rgba(255, 255, 255, 0.72);
+  box-shadow: var(--hist-shadow-lift);
   transform: translateY(-2px);
 }
 
 .history-date {
   font-weight: 600;
-  color: #029fe7;
+  color: #0178b5;
   font-size: 1rem;
-}
-
-.history-theme {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: #029fe7;
-  background: rgba(2, 159, 231, 0.12);
-  padding: 4px 12px;
-  border-radius: 8px;
-  align-self: center;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
 }
 
 .history-user-question {
   font-size: 0.82rem;
-  color: #555;
+  color: rgba(40, 40, 40, 0.78);
   line-height: 1.45;
   text-align: center;
   margin: 0;
@@ -328,7 +652,9 @@
   height: 132px;
   object-fit: cover;
   border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.32);
   flex-shrink: 0;
 }
 
@@ -339,14 +665,19 @@
 
 /* 今日區塊：單獨在最上面，卡牌更大 */
 .history-today-wrap {
-  margin-bottom: 32px;
+  margin-bottom: 40px;
+  max-width: 960px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .history-today-title {
-  font-size: 1.25rem;
-  color: #029fe7;
-  margin-bottom: 12px;
+  font-size: 1.55rem;
+  color: #0178b5;
+  margin-bottom: 16px;
   font-weight: 700;
+  text-align: center;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75), 0 0 20px rgba(255, 255, 255, 0.35);
 }
 
 /* 依日期分組（今天以外） */
@@ -360,30 +691,49 @@
 
 .history-day-heading {
   font-size: 1.2rem;
-  color: #029fe7;
+  color: #0178b5;
   margin: 0 0 14px;
   font-weight: 700;
   padding-bottom: 8px;
-  border-bottom: 1px solid rgba(2, 159, 231, 0.22);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.42);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
 .history-item-today .history-card-img {
-  width: 140px;
-  height: 210px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  width: 180px;
+  height: 270px;
+  border-radius: 14px;
+  box-shadow:
+    0 10px 32px rgba(0, 0, 0, 0.12),
+    0 0 0 1px rgba(255, 255, 255, 0.4);
+}
+
+.history-item-today .history-card-images {
+  gap: 14px;
+}
+
+.history-today-wrap .history-item-today .history-date {
+  font-size: 1.12rem;
+}
+
+.history-today-wrap .history-item-today .history-cards {
+  font-size: 1rem;
 }
 
 .history-item-today {
-  max-width: 520px;
+  max-width: 720px;
   margin: 0 auto;
-  padding: 24px;
+  padding: 32px 28px;
+  border-radius: 18px;
 }
 
 /* 今天還沒抽牌：前往抽牌連結 */
 .history-item-go-draw {
-  border: 2px dashed rgba(2, 159, 231, 0.4);
-  background: rgba(255, 255, 255, 0.9);
+  border: 2px dashed rgba(255, 255, 255, 0.55);
+  background: var(--hist-glass-veil);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: var(--hist-shadow);
 }
 
 .history-item-go-draw .history-link {
@@ -392,15 +742,17 @@
 
 .history-cards {
   font-size: 0.9rem;
-  color: #555;
+  color: rgba(40, 40, 40, 0.78);
   text-align: center;
   line-height: 1.4;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
 .history-link {
   font-size: 0.9rem;
-  color: #029fe7;
+  color: #0178b5;
   font-weight: 600;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
 .portfolio-item:hover .portfolio-category {
@@ -564,6 +916,27 @@
     height: 132px;
   }
 
+  /* 「今天」仍比一般輪播大，避免與下方歷史列一樣小 */
+  .history-carousel-today .history-slide-card.history-item-today .history-card-img,
+  .history-item-today .history-card-img {
+    width: 130px;
+    height: 195px;
+    border-radius: 12px;
+  }
+
+  .history-item-today {
+    max-width: 100%;
+    padding: 22px 16px;
+  }
+
+  .history-today-wrap {
+    max-width: 100%;
+  }
+
+  .history-today-title {
+    font-size: 1.35rem;
+  }
+
   .history-list {
     grid-template-columns: 1fr;
   }
@@ -593,6 +966,16 @@
 
 /* Small Mobile */
 @media (max-width: 575px) {
+  .history-carousel-today .history-slide-card.history-item-today .history-card-img,
+  .history-item-today .history-card-img {
+    width: 100px;
+    height: 150px;
+  }
+
+  .history-item-today .history-card-images {
+    gap: 8px;
+  }
+
   .section-title {
     font-size: 1.5rem;
   }

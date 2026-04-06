@@ -86,7 +86,7 @@ export class AnalysisComponent implements OnInit {
   }
 
   getGroupColor(group: TopKeywordGroup): string {
-    return group?.items?.[0]?.color || '#9370db';
+    return group?.items?.[0]?.color || '#b0a3d4';
   }
 
   getCardImagePath(cardId: number): string {
@@ -96,13 +96,13 @@ export class AnalysisComponent implements OnInit {
   pieStyleFromItems(items: Array<{ count: number; color?: string | null }>): string {
     const total = items.reduce((sum, it) => sum + (it.count || 0), 0);
     if (total <= 0) {
-      return 'conic-gradient(#d9e2ec 0 100%)';
+      return 'conic-gradient(#e8eef4 0 100%)';
     }
     let start = 0;
     const parts = items.map(it => {
       const ratio = (it.count || 0) / total;
       const end = start + ratio * 100;
-      const seg = `${it.color || '#999'} ${start.toFixed(2)}% ${end.toFixed(2)}%`;
+      const seg = `${it.color || '#b5c2cc'} ${start.toFixed(2)}% ${end.toFixed(2)}%`;
       start = end;
       return seg;
     });
@@ -111,8 +111,8 @@ export class AnalysisComponent implements OnInit {
 
   orientationPieStyle(): string {
     return this.pieStyleFromItems([
-      { count: this.orientation.upright_count, color: '#2ecc71' },
-      { count: this.orientation.reversed_count, color: '#e74c3c' }
+      { count: this.orientation.upright_count, color: '#9bcbb5' },
+      { count: this.orientation.reversed_count, color: '#e0aeb2' }
     ]);
   }
 

@@ -47,4 +47,10 @@ export class HeaderComponent implements OnInit {
       this.isMenuOpen = false;
     }
   }
+
+  /** History 列表與單筆閱讀頁皆視為「紀錄」導覽 */
+  isHistoryNavActive(): boolean {
+    const path = this.router.url.split('?')[0].split('#')[0];
+    return path === '/history' || path.startsWith('/reading/');
+  }
 }

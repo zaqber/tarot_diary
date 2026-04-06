@@ -1,23 +1,111 @@
 <section class="section-1">
   <div class="container">
     <h2 class="section-title">抽牌紀錄</h2>
-    <p class="section-description">
-      依<strong>日期</strong>分組瀏覽；<strong>今天</strong>若有多筆牌陣，可用左右切換；其餘日期以當日多張卡片並列顯示。
-    </p>
+  
+
+    <div class="history-toolbar" *ngIf="!errorMessage">
+      <div class="history-month-row">
+        <button type="button" class="history-month-btn" (click)="goPrevMonth()" aria-label="上一個月">
+          ◀
+        </button>
+        <span class="history-month-label">{{ viewMonthLabel }}</span>
+        <button
+          type="button"
+          class="history-month-btn"
+          (click)="goNextMonth()"
+          [disabled]="!canGoNextMonth"
+          aria-label="下一個月"
+        >
+          ▶
+        </button>
+      </div>
+      <div class="history-filter-row">
+        <label class="history-filter-field">
+          <span class="history-filter-label">主題</span>
+          <select
+            class="history-filter-select"
+            [(ngModel)]="filterTheme"
+            (ngModelChange)="onFilterChange()"
+          >
+            <option *ngFor="let o of themeFilterOptions" [ngValue]="o.key">{{ o.label }}</option>
+          </select>
+        </label>
+        <label class="history-filter-field">
+          <span class="history-filter-label">問題敘述</span>
+          <select
+            class="history-filter-select"
+            [(ngModel)]="filterQuestion"
+            (ngModelChange)="onFilterChange()"
+          >
+            <option ngValue="all">不限</option>
+            <option ngValue="yes">有填寫</option>
+            <option ngValue="no">未填寫</option>
+          </select>
+        </label>
+        <div class="history-filter-actions">
+          <span class="history-filter-label history-filter-label-spacer" aria-hidden="true">&nbsp;</span>
+          <button
+            type="button"
+            class="history-filter-reset"
+            (click)="resetFilters()"
+            [disabled]="!hasNonDefaultFilters"
+            aria-label="重設篩選條件"
+          >
+            重設篩選
+          </button>
+        </div>
+      </div>
+    </div>
 
     <p *ngIf="loading" class="loading-msg">載入中…</p>
     <p *ngIf="errorMessage" class="error-msg">{{ errorMessage }}</p>
 
-    <div *ngIf="!loading && !errorMessage && list.length === 0" class="empty-msg">
-      尚無抽牌紀錄，到 <a routerLink="/new_spread">New Spread</a> 開始抽牌吧。
+    <div
+      *ngIf="!loading && !errorMessage && list.length === 0"
+      class="empty-msg"
+    >
+      <ng-container
+        *ngIf="viewMonthKey === getCurrentMonthKey() && !hasNonDefaultFilters; else emptyFiltered"
+      >
+        尚無抽牌紀錄，到 <a routerLink="/new_spread">New Spread</a> 開始抽牌吧。
+      </ng-container>
+      <ng-template #emptyFiltered>
+        此月份或篩選條件下尚無紀錄。可切換月份、調整篩選，或到
+        <a routerLink="/new_spread">New Spread</a> 抽牌。
+      </ng-template>
     </div>
 
-    <!-- 今天：0 筆／1 筆／多筆（多筆才顯示左右切換） -->
-    <div *ngIf="!loading" class="history-today-wrap">
+    <div
+      class="history-page-bar"
+      *ngIf="!loading && !errorMessage && listMeta && listMeta.last_page > 1"
+    >
+      <button
+        type="button"
+        class="history-page-btn"
+        (click)="goListPage(listMeta.current_page - 1)"
+        [disabled]="listMeta.current_page <= 1"
+      >
+        上一頁
+      </button>
+      <span class="history-page-info"
+        >第 {{ listMeta.current_page }}／{{ listMeta.last_page }} 頁（共 {{ listMeta.total }} 筆）</span
+      >
+      <button
+        type="button"
+        class="history-page-btn"
+        (click)="goListPage(listMeta.current_page + 1)"
+        [disabled]="listMeta.current_page >= listMeta.last_page"
+      >
+        下一頁
+      </button>
+    </div>
+
+    <!-- 今天：僅檢視「當月」時顯示；0 筆／1 筆／多筆 -->
+    <div *ngIf="!loading && isViewingCurrentMonth" class="history-today-wrap">
       <h3 class="history-today-title">今天</h3>
 
       <a
-        *ngIf="todayReadings.length === 0"
+        *ngIf="todayReadings.length === 0 && !hasNonDefaultFilters"
         routerLink="/new_spread"
         class="history-item history-item-today history-item-go-draw"
       >
@@ -25,13 +113,22 @@
         <span class="history-link">前往抽牌 →</span>
       </a>
 
+      <p *ngIf="todayReadings.length === 0 && hasNonDefaultFilters" class="history-empty-today-filter">
+        今天沒有符合目前篩選的紀錄。
+      </p>
+
       <a
         *ngIf="todayReadings.length === 1"
         [routerLink]="['/reading', todayReadings[0].id]"
         class="history-item history-item-today"
       >
         <span class="history-date">{{ formatDate(todayReadings[0].reading_date) }}</span>
-        <span class="history-theme" *ngIf="todayReadings[0].theme_label_zh">{{ todayReadings[0].theme_label_zh }}</span>
+        <span
+          class="history-theme"
+          *ngIf="todayReadings[0].theme_label_zh"
+          [ngClass]="themeBadgeClass(todayReadings[0].theme)"
+          >{{ todayReadings[0].theme_label_zh }}</span
+        >
         <p
           *ngIf="todayReadings[0].ai_question?.trim()"
           class="history-user-question"
@@ -76,7 +173,12 @@
               <p class="history-slide-datetime">
                 {{ formatDate(slide.reading_date) }} · {{ formatTodaySlideTime(slide) }}
               </p>
-              <span class="history-slide-theme" *ngIf="slide.theme_label_zh">{{ slide.theme_label_zh }}</span>
+              <span
+                class="history-slide-theme"
+                *ngIf="slide.theme_label_zh"
+                [ngClass]="themeBadgeClass(slide.theme)"
+                >{{ slide.theme_label_zh }}</span
+              >
               <p
                 *ngIf="slide.ai_question?.trim()"
                 class="history-user-question"
@@ -122,7 +224,12 @@
             class="history-item"
           >
         <span class="history-date">{{ formatPastItemCaption(item) }}</span>
-        <span class="history-theme" *ngIf="item.theme_label_zh">{{ item.theme_label_zh }}</span>
+        <span
+          class="history-theme"
+          *ngIf="item.theme_label_zh"
+          [ngClass]="themeBadgeClass(item.theme)"
+          >{{ item.theme_label_zh }}</span
+        >
         <p
           *ngIf="item.ai_question?.trim()"
           class="history-user-question"
@@ -145,6 +252,31 @@
         </div>
       </div>
     </ng-container>
+
+    <div
+      class="history-page-bar history-page-bar-bottom"
+      *ngIf="!loading && !errorMessage && listMeta && listMeta.last_page > 1"
+    >
+      <button
+        type="button"
+        class="history-page-btn"
+        (click)="goListPage(listMeta.current_page - 1)"
+        [disabled]="listMeta.current_page <= 1"
+      >
+        上一頁
+      </button>
+      <span class="history-page-info"
+        >第 {{ listMeta.current_page }}／{{ listMeta.last_page }} 頁（共 {{ listMeta.total }} 筆）</span
+      >
+      <button
+        type="button"
+        class="history-page-btn"
+        (click)="goListPage(listMeta.current_page + 1)"
+        [disabled]="listMeta.current_page >= listMeta.last_page"
+      >
+        下一頁
+      </button>
+    </div>
 
     <p class="history-quick-link" *ngIf="!loading && !errorMessage && list.length > 0">
       <a routerLink="/new_spread">＋ 再抽一組新牌陣</a>

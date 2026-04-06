@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { SpreadService } from '../../services/spread.service';
 import { TarotCardService } from '../../services/tarot-card.service';
 import { TarotCard } from '../../models/tarot-card.model';
@@ -33,7 +33,6 @@ export class ReadingDetailComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private router: Router,
     private spreadService: SpreadService,
     private tarotCardService: TarotCardService
   ) {}
@@ -208,9 +207,5 @@ export class ReadingDetailComponent implements OnInit {
         this.errorMessage = '更新標籤狀態失敗';
       }
     });
-  }
-
-  goBack(): void {
-    this.router.navigate(['/history']);
   }
 }

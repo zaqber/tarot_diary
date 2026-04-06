@@ -10,7 +10,9 @@
       <ul class="nav" [class.active]="isMenuOpen">
         <li *ngIf="auth.isLoggedIn()"><a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a></li>
         <li *ngIf="auth.isLoggedIn()"><a routerLink="/new_spread" routerLinkActive="active">New Spread</a></li>
-        <li *ngIf="auth.isLoggedIn()"><a routerLink="/history" routerLinkActive="active">History</a></li>
+        <li *ngIf="auth.isLoggedIn()">
+          <a routerLink="/history" [class.active]="isHistoryNavActive()">History</a>
+        </li>
         <li *ngIf="auth.isLoggedIn()"><a routerLink="/analysis" routerLinkActive="active">Analysis</a></li>
         <li *ngIf="auth.isLoggedIn()"><a routerLink="/reminders" routerLinkActive="active">提醒</a></li>
         <li *ngIf="auth.isLoggedIn()"><a routerLink="/tarot_card_mgmt" routerLinkActive="active">Tarot Card Mgmt</a></li>

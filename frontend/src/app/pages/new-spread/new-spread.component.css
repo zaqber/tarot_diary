@@ -1100,41 +1100,45 @@
   margin-bottom: 12px;
 }
 
-/* 請 AI 解牌：漸層流動 */
+/* 請 AI 解牌：淡雅粉彩漸層（低飽和、緩慢流動） */
 .btn.ai-btn-gradient {
   background-color: transparent;
   background-image: linear-gradient(
     110deg,
-    #029fe7 0%,
-    #6366f1 25%,
-    #a855f7 50%,
-    #ec4899 75%,
-    #029fe7 100%
+    #c5dce8 0%,
+    #d8d6ec 20%,
+    #d5ebe2 40%,
+    #ead8e4 60%,
+    #cfe6ef 80%,
+    #c5dce8 100%
   );
-  background-size: 220% 100%;
-  animation: ai-btn-gradient-flow 4.5s ease-in-out infinite;
-  color: #fff;
+  background-size: 240% 100%;
+  animation: ai-btn-gradient-flow 7s ease-in-out infinite;
+  color: #4a6270;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.65);
   border: none;
   /* border-radius: 999px; */
   padding: 14px 36px;
   box-shadow:
-    0 4px 20px rgba(2, 159, 231, 0.35),
-    0 2px 8px rgba(168, 85, 247, 0.2);
+    0 4px 18px rgba(120, 150, 170, 0.14),
+    0 2px 8px rgba(180, 170, 200, 0.1),
+    0 1px 0 rgba(255, 255, 255, 0.75) inset;
 }
 
 .btn.ai-btn-gradient:hover:not(:disabled) {
-  color: #fff;
-  filter: brightness(1.07);
+  color: #3d5565;
+  filter: saturate(1.06) brightness(1.02);
   transform: translateY(-2px);
   box-shadow:
-    0 8px 28px rgba(2, 159, 231, 0.4),
-    0 4px 12px rgba(168, 85, 247, 0.25);
+    0 8px 24px rgba(120, 150, 170, 0.18),
+    0 3px 10px rgba(180, 175, 205, 0.12),
+    0 1px 0 rgba(255, 255, 255, 0.85) inset;
 }
 
 .btn.ai-btn-gradient:disabled {
   animation: none;
-  opacity: 0.72;
-  filter: grayscale(0.15);
+  opacity: 0.78;
+  filter: saturate(0.88);
   transform: none;
   cursor: not-allowed;
 }
@@ -1142,13 +1146,14 @@
 .btn.ai-btn-gradient:disabled:hover {
   background-image: linear-gradient(
     110deg,
-    #029fe7 0%,
-    #6366f1 25%,
-    #a855f7 50%,
-    #ec4899 75%,
-    #029fe7 100%
+    #c5dce8 0%,
+    #d8d6ec 20%,
+    #d5ebe2 40%,
+    #ead8e4 60%,
+    #cfe6ef 80%,
+    #c5dce8 100%
   );
-  color: #fff;
+  color: #4a6270;
   transform: none;
 }
 

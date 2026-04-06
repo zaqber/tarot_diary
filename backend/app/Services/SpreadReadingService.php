@@ -168,11 +168,41 @@ class SpreadReadingService
      * @param int $page
      * @return LengthAwarePaginator
      */
-    public function listReadings(int $userId, int $perPage = 20, int $page = 1): LengthAwarePaginator
-    {
-        return SpreadReading::with(['spreadCards.card:id,name,name_zh'])
+    /**
+     * @param  string|null  $monthYm  YYYY-MM，僅載入該月（與 history 月分頁一致）
+     * @param  string|null  $themeFilter  overall|love|career|finance
+     * @param  bool|null  $hasQuestion  true＝有填問題敘述；false＝未填；null＝不限
+     */
+    public function listReadings(
+        int $userId,
+        int $perPage = 20,
+        int $page = 1,
+        ?string $monthYm = null,
+        ?string $themeFilter = null,
+        ?bool $hasQuestion = null
+    ): LengthAwarePaginator {
+        $query = SpreadReading::with(['spreadCards.card:id,name,name_zh'])
             ->where('user_id', $userId)
-            ->where('spread_type_id', self::THREE_CARD_SPREAD_TYPE_ID)
+            ->where('spread_type_id', self::THREE_CARD_SPREAD_TYPE_ID);
+
+        if ($monthYm !== null && preg_match('/^\d{4}-\d{2}$/', $monthYm)) {
+            [$y, $m] = array_map('intval', explode('-', $monthYm, 2));
+            $query->whereYear('reading_date', $y)->whereMonth('reading_date', $m);
+        }
+
+        if ($themeFilter !== null && self::isValidTheme($themeFilter)) {
+            $query->where('theme', $themeFilter);
+        }
+
+        if ($hasQuestion === true) {
+            $query->whereNotNull('ai_question')->where('ai_question', '!=', '');
+        } elseif ($hasQuestion === false) {
+            $query->where(function ($q) {
+                $q->whereNull('ai_question')->orWhere('ai_question', '=', '');
+            });
+        }
+
+        return $query
             ->orderByDesc('reading_date')
             ->orderByDesc('id')
             ->paginate($perPage, ['*'], 'page', $page);

@@ -80,13 +80,38 @@ export class SpreadService {
 
   /**
    * 取得牌陣列表（分頁，供 history 用）
+   * @param month YYYY-MM 僅該月
+   * @param theme overall|love|career|finance
+   * @param has_question 是否僅有／無填寫問題敘述
    */
-  getReadingList(params?: { per_page?: number; page?: number }): Observable<{
+  getReadingList(params?: {
+    per_page?: number;
+    page?: number;
+    month?: string;
+    theme?: string;
+    has_question?: boolean;
+  }): Observable<{
     data: SpreadReadingListItem[];
     meta: { current_page: number; last_page: number; per_page: number; total: number };
   }> {
+    const query: Record<string, string | number | boolean> = {};
+    if (params?.per_page != null) {
+      query['per_page'] = params.per_page;
+    }
+    if (params?.page != null) {
+      query['page'] = params.page;
+    }
+    if (params?.month) {
+      query['month'] = params.month;
+    }
+    if (params?.theme) {
+      query['theme'] = params.theme;
+    }
+    if (params?.has_question !== undefined) {
+      query['has_question'] = params.has_question;
+    }
     return this.http.get<{ data: SpreadReadingListItem[]; meta: any }>(this.apiUrl, {
-      params: params ?? {}
+      params: query
     });
   }
 
@@ -145,6 +170,7 @@ export interface SpreadReadingListItem {
   reading_date: string;
   /** ISO 8601，同日多筆時用於區分順序 */
   reading_time?: string | null;
+  /** overall | love | career | finance */
   theme?: string;
   theme_label_zh?: string;
   /** 問題敘述（選填） */

@@ -1,25 +1,38 @@
-<section class="reading-detail-section">
+<section class="reading-detail-section section-top-about">
   <div class="container">
     <p *ngIf="loading" class="loading-msg">載入中…</p>
     <p *ngIf="errorMessage" class="error-msg">{{ errorMessage }}</p>
 
     <!-- 有至少一張對得到的牌才顯示牌陣與 AI -->
     <div *ngIf="!loading && !errorMessage && readingDetail && hasReadableSpread">
-      <div class="detail-header">
-        <p class="page-date">{{ displayDate }}</p>
-        <p class="reading-theme" *ngIf="readingDetail?.theme_label_zh">主題：{{ readingDetail?.theme_label_zh }}</p>
-        <h2 class="section-title">About My Day</h2>
-        <button type="button" class="back-btn" (click)="goBack()">返回</button>
+      <div class="reading-detail-cta-wrap">
+        <a routerLink="/history" class="reading-detail-cta-link">← 返回紀錄</a>
       </div>
 
-      <div class="card-grid">
+      <h2 class="section-title section-title-about page-hero-title">About My Day</h2>
+      <p class="page-date">{{ displayDate }}</p>
+
+      <div class="setting-card setting-card-reading-meta">
+        <div class="theme-picker">
+          <span class="theme-label">抽牌主題</span>
+          <span class="theme-locked-badge" *ngIf="readingDetail?.theme_label_zh">{{
+            readingDetail?.theme_label_zh
+          }}</span>
+        </div>
+      </div>
+
+      <div class="card-grid about-day-top-grid">
         <div *ngFor="let slot of slots" class="card-wrapper">
           <div
             *ngIf="slot.card"
-            class="card"
-            [class.card-reversed]="slot.isReversed"
-            [style.background-image]="'url(' + getCardImageUrl(slot.card, false) + ')'"
-          ></div>
+            class="card-img-wrap"
+          >
+            <div
+              class="card"
+              [class.card-reversed]="slot.isReversed"
+              [style.background-image]="'url(' + getCardImageUrl(slot.card, false) + ')'"
+            ></div>
+          </div>
           <div *ngIf="!slot.card" class="card card-placeholder reading-slot-empty">
             <span>第 {{ slot.position_number }} 張 · 未紀錄</span>
           </div>
@@ -32,7 +45,7 @@
                 class="tag tag-clickable"
                 [class.tag-selected]="isTagSelected(slot, tag.id)"
                 [class.tag-unselected]="!isTagSelected(slot, tag.id)"
-                [style.background-color]="isTagNameRepeated(tag.name_zh) ? (tag.color || '#666') : '#555'"
+                [style.background-color]="isTagNameRepeated(tag.name_zh) ? (tag.color || '#666') : '#C4A574'"
                 (click)="toggleTag(slot, tag.id)"
               >{{ tag.name_zh }}</button>
               <span *ngIf="slot.card && getActiveTags(slot.card).length === 0" class="tag-none">尚無標籤</span>
@@ -41,7 +54,7 @@
         </div>
       </div>
 
-      <div class="ai-reading-block" *ngIf="allSlotsFilled">
+      <div class="ai-reading-block setting-card setting-card-ai" *ngIf="allSlotsFilled">
         <h3 class="ai-section-title">AI 解牌</h3>
         <label class="ai-label" for="ai-q-reading">問題敘述（選填）</label>
         <textarea
@@ -70,7 +83,7 @@
         </div>
         <button
           type="button"
-          class="btn ai-btn"
+          class="btn ai-btn ai-btn-gradient"
           (click)="requestAiInterpret()"
           [disabled]="aiInterpretLoading"
         >
@@ -82,7 +95,8 @@
 
     <!-- 有紀錄但 spread_cards 完全對不到牌：不顯示牌區，僅返回 -->
     <div *ngIf="!loading && !errorMessage && readingDetail && !hasReadableSpread" class="reading-no-display">
-      <button type="button" class="back-btn" (click)="goBack()">返回 History</button>
+      <p class="reading-no-display-msg">此筆紀錄的牌面資料無法顯示。</p>
+      <a routerLink="/history" class="btn btn-secondary reading-no-display-btn">返回紀錄</a>
     </div>
   </div>
 </section>

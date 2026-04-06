@@ -21,13 +21,114 @@ export class HistoryComponent implements OnInit {
   /** 僅「今天有多筆」時使用：目前顯示第幾筆（0＝今天內最新） */
   todayCarouselIndex = 0;
 
+  /** 檢視月份 YYYY-MM（台北日曆） */
+  viewMonthKey: string;
+  /** 主題篩選：空字串＝全部 */
+  filterTheme = '';
+  /** 問題敘述篩選 */
+  filterQuestion: 'all' | 'yes' | 'no' = 'all';
+  /** 該月列表 API 分頁 */
+  currentPage = 1;
+  listMeta: { current_page: number; last_page: number; per_page: number; total: number } | null =
+    null;
+
+  readonly themeFilterOptions: Array<{ key: string; label: string }> = [
+    { key: '', label: '全部主題' },
+    { key: 'overall', label: '整體' },
+    { key: 'love', label: '感情' },
+    { key: 'career', label: '事業' },
+    { key: 'finance', label: '財務' }
+  ];
+
+  /** 主題分類標籤色（對應 API `theme`：overall | love | career | finance） */
+  themeBadgeClass(theme?: string | null): string {
+    const t = (theme || '').trim().toLowerCase();
+    const map: Record<string, string> = {
+      overall: 'history-theme--overall',
+      love: 'history-theme--love',
+      career: 'history-theme--career',
+      finance: 'history-theme--finance'
+    };
+    return map[t] ?? 'history-theme--unknown';
+  }
+
   constructor(
     private spreadService: SpreadService,
     private tarotCardService: TarotCardService
-  ) {}
+  ) {
+    this.viewMonthKey = this.getCurrentMonthKey();
+  }
 
   ngOnInit(): void {
     this.loadList();
+  }
+
+  getCurrentMonthKey(): string {
+    return getTodayDateStringInTaipei().slice(0, 7);
+  }
+
+  get viewMonthLabel(): string {
+    const [y, m] = this.viewMonthKey.split('-').map(Number);
+    return `${y} 年 ${m} 月`;
+  }
+
+  get isViewingCurrentMonth(): boolean {
+    return this.viewMonthKey === this.getCurrentMonthKey();
+  }
+
+  get canGoNextMonth(): boolean {
+    return this.viewMonthKey < this.getCurrentMonthKey();
+  }
+
+  get hasNonDefaultFilters(): boolean {
+    return this.filterTheme !== '' || this.filterQuestion !== 'all';
+  }
+
+  goPrevMonth(): void {
+    this.viewMonthKey = this.addMonthsYm(this.viewMonthKey, -1);
+    this.currentPage = 1;
+    this.loadList();
+  }
+
+  goNextMonth(): void {
+    if (!this.canGoNextMonth) {
+      return;
+    }
+    this.viewMonthKey = this.addMonthsYm(this.viewMonthKey, 1);
+    this.currentPage = 1;
+    this.loadList();
+  }
+
+  onFilterChange(): void {
+    this.currentPage = 1;
+    this.loadList();
+  }
+
+  resetFilters(): void {
+    if (!this.hasNonDefaultFilters) {
+      return;
+    }
+    this.filterTheme = '';
+    this.filterQuestion = 'all';
+    this.currentPage = 1;
+    this.loadList();
+  }
+
+  goListPage(p: number): void {
+    if (!this.listMeta || p < 1 || p > this.listMeta.last_page) {
+      return;
+    }
+    this.currentPage = p;
+    this.loadList();
+    if (typeof window !== 'undefined') {
+      window.scrollTo(0, 0);
+    }
+  }
+
+  private addMonthsYm(ym: string, delta: number): string {
+    const [y, mo] = ym.split('-').map(Number);
+    const d = new Date(Date.UTC(y, mo - 1 + delta, 1));
+    return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
   }
 
   private getTodayDateString(): string {
@@ -146,21 +247,61 @@ export class HistoryComponent implements OnInit {
     }
   }
 
+  private buildListQuery(): {
+    per_page: number;
+    page: number;
+    month: string;
+    theme?: string;
+    has_question?: boolean;
+  } {
+    const q: {
+      per_page: number;
+      page: number;
+      month: string;
+      theme?: string;
+      has_question?: boolean;
+    } = {
+      per_page: 200,
+      page: this.currentPage,
+      month: this.viewMonthKey
+    };
+    if (this.filterTheme) {
+      q.theme = this.filterTheme;
+    }
+    if (this.filterQuestion === 'yes') {
+      q.has_question = true;
+    } else if (this.filterQuestion === 'no') {
+      q.has_question = false;
+    }
+    return q;
+  }
+
   private loadList(): void {
     this.loading = true;
     this.errorMessage = '';
-    this.spreadService.getReadingList({ per_page: 80, page: 1 }).subscribe({
+    this.spreadService.getReadingList(this.buildListQuery()).subscribe({
       next: (res: any) => {
         const raw = res.data ?? res ?? [];
         const arr = Array.isArray(raw) ? raw : [];
         this.list = arr.filter((item: SpreadReadingListItem) =>
           hasReadableSpreadCards(item.spread_cards)
         );
+        const m = res.meta;
+        this.listMeta =
+          m && typeof m.current_page === 'number'
+            ? {
+                current_page: m.current_page,
+                last_page: m.last_page ?? 1,
+                per_page: m.per_page ?? 200,
+                total: m.total ?? this.list.length
+              }
+            : null;
         this.todayCarouselIndex = 0;
         this.loading = false;
       },
       error: () => {
         this.errorMessage = '無法載入紀錄';
+        this.listMeta = null;
         this.loading = false;
       }
     });
